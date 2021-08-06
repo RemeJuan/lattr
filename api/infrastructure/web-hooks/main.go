@@ -2,26 +2,37 @@ package web_hooks
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/RemeJuan/lattr/infrastructure/twitter-client"
 	"net/http"
+	"strings"
 )
 
 func HandleWebhook(w http.ResponseWriter, r *http.Request) {
-	webhookData := make(map[string]interface{})
+	var tweet string
+	webhookData := make(map[string]string)
 	err := json.NewDecoder(r.Body).Decode(&webhookData)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println("got webhook payload: ")
-	for k, v := range webhookData {
-		fmt.Printf("%s : %v\n", k, v)
+
+	if len(webhookData["template"]) > 0 {
+		tweet = handleTemplate(webhookData)
+	} else {
+		tweet = webhookData["data"]
 	}
 
-	switch name := webhookData["username"]; name {
-	case "test":
-		fmt.Println("Invoked")
-	default:
-		fmt.Println("Not invoked")
+	twitter_client.CreateTweet(tweet)
+}
+
+func handleTemplate(webhookData map[string]string) string {
+	//get template
+	template := "{{Title}} via /r/{{Subreddit}} {{PostURL}}"
+
+	for k, v := range webhookData {
+		template = strings.Replace(template, "{{"+k+"}}", v, -1)
 	}
+
+	return template
 }
