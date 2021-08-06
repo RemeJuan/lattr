@@ -11,7 +11,7 @@ import (
 // Credentials stores all of our access/consumer tokens
 // and secret keys needed for authentication against
 // the twitter REST API.
-type Credentials struct {
+type credentials struct {
 	ConsumerKey       string
 	ConsumerSecret    string
 	AccessToken       string
@@ -23,7 +23,7 @@ type Credentials struct {
 // this will take in a pointer to a Credential struct which will contain
 // everything needed to authenticate and return a pointer to a twitter Client
 // or an error
-func getClient(credentials *Credentials) (*twitter.Client, error) {
+func getClient(credentials *credentials) (*twitter.Client, error) {
 	// Pass in your consumer key (API Key) and your Consumer Secret (API Secret)
 	config := oauth1.NewConfig(credentials.ConsumerKey, credentials.ConsumerSecret)
 	// Pass in your Access Token and your Access Token Secret
@@ -49,11 +49,26 @@ func getClient(credentials *Credentials) (*twitter.Client, error) {
 	return client, nil
 }
 
-func getCredentials() Credentials {
-	return Credentials{
+func getCredentials() *credentials {
+	return &credentials{
 		AccessToken:       os.Getenv("ACCESS_TOKEN"),
 		AccessTokenSecret: os.Getenv("ACCESS_TOKEN_SECRET"),
 		ConsumerKey:       os.Getenv("CONSUMER_KEY"),
 		ConsumerSecret:    os.Getenv("CONSUMER_SECRET"),
+	}
+}
+
+func CreateTweet(tweet string) {
+	client, err := getClient(getCredentials())
+
+	if err != nil {
+		log.Println("Error getting Twitter Client")
+		log.Println(err)
+		return
+	}
+
+	_, _, err = client.Statuses.Update(tweet, nil)
+	if err != nil {
+		return
 	}
 }
