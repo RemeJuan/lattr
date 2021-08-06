@@ -8,7 +8,6 @@ import (
 )
 
 func HandleWebhook(w http.ResponseWriter, r *http.Request) {
-	var tweet string
 	webhookData := make(map[string]string)
 	err := json.NewDecoder(r.Body).Decode(&webhookData)
 
@@ -18,12 +17,12 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(webhookData["template"]) > 0 {
-		tweet = handleTemplate(webhookData)
+		twitter_client.CreateTweet(handleTemplate(webhookData))
+	} else if len(webhookData["data"]) > 0 {
+		twitter_client.CreateTweet(webhookData["data"])
 	} else {
-		tweet = webhookData["data"]
+		http.Error(w, "Invalid payload", http.StatusBadRequest)
 	}
-
-	twitter_client.CreateTweet(tweet)
 }
 
 func handleTemplate(webhookData map[string]string) string {
