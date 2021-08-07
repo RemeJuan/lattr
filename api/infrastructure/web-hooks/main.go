@@ -8,6 +8,11 @@ import (
 )
 
 func HandleWebhook(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Method is not supported.", http.StatusBadRequest)
+		return
+	}
+
 	webhookData := make(map[string]string)
 	err := json.NewDecoder(r.Body).Decode(&webhookData)
 
