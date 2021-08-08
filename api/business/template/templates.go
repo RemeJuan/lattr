@@ -29,3 +29,23 @@ func ProcessTemplate(template string, webhookData map[string]string) string {
 
 	return template
 }
+
+func GetTemplate(id string) (error, Template) {
+	var template Template
+
+	ctx, client := firebase_db.Client()
+	collection := client.Collection("templates")
+	doc := collection.Doc(id)
+
+	docSnap, e := doc.Get(ctx)
+	if e != nil {
+		return e, Template{}
+	}
+
+	err := docSnap.DataTo(&template)
+	if err != nil {
+		return err, Template{}
+	}
+
+	return err, template
+}
