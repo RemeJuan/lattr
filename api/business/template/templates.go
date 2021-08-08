@@ -3,23 +3,24 @@ package templates
 import (
 	"strings"
 
-	firebase_db "github.com/RemeJuan/lattr/infrastructure/firebase-db"
+	"github.com/RemeJuan/lattr/infrastructure/postgress-db"
+	"github.com/jinzhu/gorm"
 )
 
 type Template struct {
+	gorm.Model
 	Name           string `firestore:"name"`
 	OwnerId        string `firestore:"ownerId"`
 	TemplateString string `firestore:"templateString"`
 }
 
-func CreateTemplate(userId string, template Template) error {
-	ctx, client := firebase_db.Client()
-	doc := client.Doc("templates/")
+func CreateTemplate(userId string, template Template) {
+	db := postgress_db.Connect()
+
+	db.AutoMigrate(&Template{})
 
 	template.OwnerId = userId
-	_, err := doc.Create(ctx, template)
-
-	return err
+	db.Create(&template)
 }
 
 func ProcessTemplate(template string, webhookData map[string]string) string {
@@ -30,22 +31,12 @@ func ProcessTemplate(template string, webhookData map[string]string) string {
 	return template
 }
 
-func GetTemplate(id string) (error, Template) {
+func GetTemplate(id string) Template {
 	var template Template
 
-	ctx, client := firebase_db.Client()
-	collection := client.Collection("templates")
-	doc := collection.Doc(id)
+	db := postgress_db.Connect()
 
-	docSnap, e := doc.Get(ctx)
-	if e != nil {
-		return e, Template{}
-	}
+	db.First(&template, id)
 
-	err := docSnap.DataTo(&template)
-	if err != nil {
-		return err, Template{}
-	}
-
-	return err, template
+	return template
 }
