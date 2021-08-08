@@ -2,9 +2,10 @@ package web_hooks
 
 import (
 	"encoding/json"
-	"github.com/RemeJuan/lattr/infrastructure/twitter-client"
 	"net/http"
-	"strings"
+
+	templates "github.com/RemeJuan/lattr/business/template"
+	"github.com/RemeJuan/lattr/infrastructure/twitter-client"
 )
 
 func HandleWebhook(w http.ResponseWriter, r *http.Request) {
@@ -31,12 +32,5 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleTemplate(webhookData map[string]string) string {
-	//get template
-	template := "{{Title}} via /r/{{Subreddit}} {{PostURL}}"
-
-	for k, v := range webhookData {
-		template = strings.Replace(template, "{{"+k+"}}", v, -1)
-	}
-
-	return template
+	return templates.ProcessTemplate("{{Title}} via /r/{{Subreddit}} {{PostURL}}", webhookData)
 }
