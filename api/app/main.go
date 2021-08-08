@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/RemeJuan/lattr/core/sentry"
+	"github.com/RemeJuan/lattr/infrastructure/sentry"
 	"github.com/RemeJuan/lattr/infrastructure/web-hooks"
 	"log"
 	"net/http"
