@@ -1,15 +1,18 @@
 package main
 
 import (
-	"github.com/RemeJuan/lattr/infrastructure/sentry"
-	"github.com/RemeJuan/lattr/infrastructure/web-hooks"
 	"log"
-	"net/http"
+
+	"github.com/RemeJuan/lattr/infrastructure/endpoints"
+	"github.com/RemeJuan/lattr/infrastructure/sentry"
 )
 
 func main() {
 	log.Println("server started")
-	http.HandleFunc("/webhook", web_hooks.HandleWebhook)
+
+	// Register all available endpoints
+	endpoints.Register()
+
+	// setup sentry logging
 	sentry_setup.Init()
-	log.Fatal(http.ListenAndServe(":8080", nil))
 }
