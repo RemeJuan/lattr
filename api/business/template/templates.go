@@ -9,13 +9,15 @@ import (
 
 type Template struct {
 	gorm.Model
-	Name           string `firestore:"name"`
-	OwnerId        string `firestore:"ownerId"`
-	TemplateString string `firestore:"templateString"`
+	Name           string `json:"name"`
+	OwnerId        string `json:"ownerId"`
+	TemplateString string `json:"templateString"`
 }
 
 func CreateTemplate(userId string, template Template) {
 	db := postgress_db.Connect()
+
+	defer db.Close()
 
 	db.AutoMigrate(&Template{})
 
@@ -35,6 +37,8 @@ func GetTemplate(id string) Template {
 	var template Template
 
 	db := postgress_db.Connect()
+
+	defer db.Close()
 
 	db.First(&template, id)
 
