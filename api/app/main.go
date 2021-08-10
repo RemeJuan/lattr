@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/RemeJuan/lattr/infrastructure/endpoints"
-	"github.com/RemeJuan/lattr/infrastructure/sentry"
+	"github.com/RemeJuan/lattr/api/infrastructure/endpoints"
+	"github.com/RemeJuan/lattr/api/infrastructure/sentry"
 )
 
 func main() {

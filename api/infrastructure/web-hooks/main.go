@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	templates "github.com/RemeJuan/lattr/business/template"
-	"github.com/RemeJuan/lattr/infrastructure/twitter-client"
+	"github.com/RemeJuan/lattr/api/business/template"
+	"github.com/RemeJuan/lattr/api/infrastructure/twitter-client"
 	"github.com/gin-gonic/gin"
 )
 

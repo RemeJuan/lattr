@@ -3,7 +3,7 @@ package templates
 import (
 	"strings"
 
-	"github.com/RemeJuan/lattr/infrastructure/postgress-db"
+	"github.com/RemeJuan/lattr/api/infrastructure/postgress-db"
 	"github.com/jinzhu/gorm"
 )
 

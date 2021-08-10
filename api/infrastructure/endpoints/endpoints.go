@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/RemeJuan/lattr/business/template"
-	"github.com/RemeJuan/lattr/infrastructure/web-hooks"
+	"github.com/RemeJuan/lattr/api/business/template"
+	"github.com/RemeJuan/lattr/api/infrastructure/web-hooks"
 	"github.com/gin-gonic/gin"
 )
 
