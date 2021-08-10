@@ -1,9 +1,10 @@
 package sentry_setup
 
 import (
-	"github.com/getsentry/sentry-go"
 	"log"
 	"os"
+
+	"github.com/getsentry/sentry-go"
 )
 
 func Init() {

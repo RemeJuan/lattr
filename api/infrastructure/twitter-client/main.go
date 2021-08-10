@@ -1,11 +1,12 @@
 package twitter_client
 
 import (
+	"log"
+	"os"
+
 	// other imports
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
-	"log"
-	"os"
 )
 
 // Credentials stores all of our access/consumer tokens
