@@ -27,6 +27,8 @@ func handleTemplates(c *gin.Context) {
 		id := getParam(c, "id")
 		fmt.Println(len(id))
 		fmt.Println(id)
+
+		c.JSON(200, templates.GetTemplate(id))
 	} else if c.Request.Method == "POST" {
 		webhookData := make(map[string]string)
 		err := json.NewDecoder(c.Request.Body).Decode(&webhookData)
@@ -38,7 +40,7 @@ func handleTemplates(c *gin.Context) {
 
 		fmt.Println(webhookData["data"])
 		templates.CreateTemplate("001", templates.Template{
-			Name:           "Test",
+			Name:           webhookData["name"],
 			TemplateString: webhookData["data"],
 		})
 	} else {
