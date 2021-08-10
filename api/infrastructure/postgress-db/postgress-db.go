@@ -26,14 +26,13 @@ func Connect() *gorm.DB {
 	dbname := connection.dbname
 
 	// connection string
-	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=require", host, port, user, password, dbname)
 
 	// open database
 	db, err := gorm.Open("postgres", psqlconn)
 	CheckError(err)
 
-	// close database
-	defer db.Close()
+	// Close the Connection in the calling function
 
 	fmt.Println("Connected!")
 
@@ -41,7 +40,7 @@ func Connect() *gorm.DB {
 }
 
 func connectionDetails() pgConnection {
-	port, _ := strconv.ParseInt(os.Getenv("PG_HOST"), 10, 32)
+	port, _ := strconv.ParseInt(os.Getenv("PG_PORT"), 10, 32)
 
 	return pgConnection{
 		host:     os.Getenv("PG_HOST"),
