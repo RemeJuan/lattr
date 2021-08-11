@@ -27,7 +27,7 @@ func ScheduleTweet(tweet Tweet) {
 	fmt.Println(tweet)
 }
 
-func BuildTweet(data map[string]string) (error, Tweet) {
+func BuildTweet(data map[string]string) (Tweet, error) {
 	message := data["message"]
 	postTime := data["time"]
 	layout := "2006-01-02 15:04:05 -0700"
@@ -35,13 +35,13 @@ func BuildTweet(data map[string]string) (error, Tweet) {
 	t, err := time.Parse(layout, postTime)
 
 	if err != nil {
-		return err, Tweet{}
+		return Tweet{}, err
 	}
 
-	return nil, Tweet{
+	return Tweet{
 		Message:  message,
 		UserId:   "001",
 		PostTime: t.UTC().String(),
 		Status:   Pending,
-	}
+	}, nil
 }
