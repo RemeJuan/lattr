@@ -1,10 +1,8 @@
 package tweet
 
 import (
-	"fmt"
 	"time"
 
-	"github.com/RemeJuan/lattr/infrastructure/postgress-db"
 	"github.com/jinzhu/gorm"
 )
 
@@ -24,16 +22,16 @@ type Tweet struct {
 	Status   tweetStatus `json:"Status"`
 }
 
-func ScheduleTweet(tweet Tweet) {
-	db := postgress_db.Connect()
+func ScheduleTweet(db *gorm.DB, tweet map[string]string) {
+	t, err := BuildTweet(tweet)
 
-	defer db.Close()
+	if err != nil {
+		return
+	}
 
-	db.AutoMigrate(&Tweet{})
+	//db.AutoMigrate(&Tweet{})
 
-	db.Create(&tweet)
-
-	fmt.Println(tweet)
+	db.Create(&t)
 }
 
 func BuildTweet(data map[string]string) (Tweet, error) {
