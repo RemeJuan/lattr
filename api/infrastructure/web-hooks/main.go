@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/RemeJuan/lattr/business/template"
 	"github.com/RemeJuan/lattr/infrastructure/twitter-client"
 	"github.com/gin-gonic/gin"
 )
@@ -18,15 +17,9 @@ func HandleWebhook(c *gin.Context) {
 		return
 	}
 
-	if len(webhookData["template"]) > 0 {
-		twitter_client.CreateTweet(handleTemplate(webhookData))
-	} else if len(webhookData["data"]) > 0 {
+	if len(webhookData["data"]) > 0 {
 		twitter_client.CreateTweet(webhookData["data"])
 	} else {
 		http.Error(c.Writer, "Invalid payload", http.StatusBadRequest)
 	}
-}
-
-func handleTemplate(webhookData map[string]string) string {
-	return templates.ProcessTemplate("{{Title}} via /r/{{Subreddit}} {{PostURL}}", webhookData)
 }
