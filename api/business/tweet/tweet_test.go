@@ -18,7 +18,7 @@ func TestConvert(t *testing.T) {
 		PostTime: "2021-07-17 10:55:50 +0000 UTC",
 		Status:   Pending,
 	}
-	err, t2 := BuildTweet(data)
+	t2, err := BuildTweet(data)
 
 	if err != nil {
 		t.Log("error should be nil", err)
@@ -27,7 +27,7 @@ func TestConvert(t *testing.T) {
 	}
 
 	if t2 != expected {
-		t.Log("Output does not match expected", err, t2)
+		t.Log("Output does not match expected", t2)
 		t.Fail()
 	}
 }
