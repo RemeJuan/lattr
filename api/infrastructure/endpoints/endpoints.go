@@ -1,44 +1,22 @@
 package endpoints
 
 import (
-	"encoding/json"
 	"log"
-	"net/http"
 
-	"github.com/RemeJuan/lattr/business/tweet"
-	"github.com/RemeJuan/lattr/infrastructure/web-hooks"
+	"github.com/RemeJuan/lattr/core/controller"
 	"github.com/gin-gonic/gin"
 )
 
-func Register() {
+func Register(con *controller.DBController) {
 	r := gin.Default()
 	g := r.Group("/")
 	{
-		g.POST("/create", handleTweet)
-		g.POST("/webhook", web_hooks.HandleWebhook)
+		g.POST("/create", con.Tweet)
+		g.POST("/webhook", con.WebHook)
 	}
 	log.Fatalln(r.Run())
 }
 
-func handleTweet(c *gin.Context) {
-	payload := make(map[string]string)
-	err := json.NewDecoder(c.Request.Body).Decode(&payload)
-
-	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	t, terr := tweet.BuildTweet(payload)
-
-	if terr != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	tweet.ScheduleTweet(t)
-}
-
-func getParam(c *gin.Context, paramName string) string {
+func GetParam(c *gin.Context, paramName string) string {
 	return c.Params.ByName(paramName)
 }

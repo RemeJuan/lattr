@@ -1,4 +1,4 @@
-package postgress_db
+package postgress
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ func Connect() *gorm.DB {
 	db, err := gorm.Open("postgres", os.Getenv("DATABASE_URL"))
 	CheckError(err)
 
-	// Close the Connection in the calling function
+	defer db.Close()
 
 	fmt.Println("Connected!")
 
