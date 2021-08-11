@@ -2,17 +2,14 @@ package tweet
 
 import (
 	"testing"
-
-	"github.com/jinzhu/gorm"
 )
 
-func TestConvert(t *testing.T) {
+func TestBuildTweet(t *testing.T) {
 	data := make(map[string]string)
 	data["message"] = "hello"
 	data["time"] = "2021-07-17 12:55:50 +0200"
 
 	expected := Tweet{
-		Model:    gorm.Model{},
 		Message:  "hello",
 		UserId:   "001",
 		PostTime: "2021-07-17 10:55:50 +0000 UTC",
