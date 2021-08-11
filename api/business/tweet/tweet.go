@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/RemeJuan/lattr/infrastructure/postgress-db"
 	"github.com/jinzhu/gorm"
 )
 
@@ -24,6 +25,14 @@ type Tweet struct {
 }
 
 func ScheduleTweet(tweet Tweet) {
+	db := postgress_db.Connect()
+
+	defer db.Close()
+
+	db.AutoMigrate(&Tweet{})
+
+	db.Create(&tweet)
+
 	fmt.Println(tweet)
 }
 
