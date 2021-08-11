@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/RemeJuan/lattr/business/template"
+	"github.com/RemeJuan/lattr/business/tweet"
 	"github.com/RemeJuan/lattr/infrastructure/web-hooks"
 	"github.com/gin-gonic/gin"
 )
@@ -17,9 +18,29 @@ func Register() {
 	{
 		g.GET("/templates/:id", handleTemplates)
 		g.POST("/templates", handleTemplates)
+		g.POST("/create", handleTweet)
 		g.POST("/webhook", web_hooks.HandleWebhook)
 	}
 	log.Fatalln(r.Run())
+}
+
+func handleTweet(c *gin.Context) {
+	payload := make(map[string]string)
+	err := json.NewDecoder(c.Request.Body).Decode(&payload)
+
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	t, terr := tweet.BuildTweet(payload)
+
+	if terr != nil {
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	tweet.ScheduleTweet(t)
 }
 
 func handleTemplates(c *gin.Context) {

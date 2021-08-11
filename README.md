@@ -1,5 +1,7 @@
 ![Lattr](readme/lattr_logo.png)
 
+[![codecov](https://codecov.io/gh/RemeJuan/lattr/branch/main/graph/badge.svg?token=XeKra2LhuM)](https://codecov.io/gh/RemeJuan/lattr)
+
 # Lattr
 
 Lattr (later) is a small API driven twitter scheduler, in practice it would be something like a lite version
