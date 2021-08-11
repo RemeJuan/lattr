@@ -3,3 +3,6 @@ run:
 
 test:
 	go test ./...
+
+coverage:
+	go test ./... -race -covermode=atomic -coverprofile=coverage.out
