@@ -29,6 +29,7 @@ func (con *DBController) WebHook(c *gin.Context) {
 
 	if len(webhookData["data"]) > 0 {
 		twitter_client.CreateTweet(webhookData["data"])
+		c.JSON(200, "Tweet Queued")
 	} else {
 		BadRequestError(c, errors.New("invalid payload"))
 	}
@@ -45,6 +46,8 @@ func (con *DBController) Tweet(c *gin.Context) {
 	tErr := tweet.ScheduleTweet(con.db, payload)
 
 	ErrorCheck(tErr)
+
+	c.JSON(200, "Tweet Queued")
 }
 
 func PingDB(con *gorm.DB) {
