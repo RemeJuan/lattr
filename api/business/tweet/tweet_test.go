@@ -8,7 +8,6 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jinzhu/gorm"
-	"github.com/stretchr/testify/require"
 )
 
 type AnyTime struct{}
@@ -19,7 +18,7 @@ func (a AnyTime) Match(v driver.Value) bool {
 	return ok
 }
 
-func TestScheduleTweet(t *testing.T) {
+func TestScheduleTweetSuccess(t *testing.T) {
 	const message = "message"
 	const postTime = "2021-07-12 12:55:50 +0200"
 
@@ -46,15 +45,36 @@ func TestScheduleTweet(t *testing.T) {
 	const sqlInsert = `INSERT INTO "tweets" ("created_at","updated_at","deleted_at","message","user_id","post_time","status") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "tweets"."id"`
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(sqlInsert)).WithArgs(AnyTime{}, AnyTime{}, tweet.DeletedAt, tweet.Message, tweet.UserId, tweet.PostTime, tweet.Status)
-	mock.ExpectCommit()
+	mock.ExpectQuery(regexp.QuoteMeta(sqlInsert)).WithArgs(AnyTime{}, AnyTime{}, tweet.DeletedAt, tweet.Message, tweet.UserId, tweet.PostTime, tweet.Status)
 
-	ScheduleTweet(gdb, data)
+	_ = ScheduleTweet(gdb, data)
 
-	require.NoError(t, err)
+	// we make sure that all expectations were met
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 }
 
-func TestBuildTweet(t *testing.T) {
+func TestScheduleTweetError(t *testing.T) {
+	const message = "message"
+	const postTime = "2021-07-12 12:55:50 0200"
+
+	db, _, _ := sqlmock.New()
+	gdb, _ := gorm.Open("postgres", db)
+	data := make(map[string]string)
+
+	data["message"] = message
+	data["time"] = postTime
+
+	shedErr := ScheduleTweet(gdb, data)
+
+	if shedErr == nil {
+		t.Log("Error should be nil")
+		t.Fail()
+	}
+}
+
+func TestBuildTweetSuccess(t *testing.T) {
 	data := make(map[string]string)
 	data["message"] = "hello"
 	data["time"] = "2021-07-17 12:55:50 +0200"
@@ -75,6 +95,23 @@ func TestBuildTweet(t *testing.T) {
 
 	if t2 != expected {
 		t.Log("Output does not match expected", t2)
+		t.Fail()
+	}
+}
+
+func TestBuildTweetError(t *testing.T) {
+	const message = "message"
+	const postTime = "2021-07-12 12:55:50 0200"
+
+	data := make(map[string]string)
+
+	data["message"] = message
+	data["time"] = postTime
+
+	_, shedErr := BuildTweet(data)
+
+	if shedErr == nil {
+		t.Log("Error should be nil")
 		t.Fail()
 	}
 }
