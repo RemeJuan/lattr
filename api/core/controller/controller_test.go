@@ -21,28 +21,34 @@ type MockDBController struct {
 
 func TestDBController_WebHook_Success(t *testing.T) {
 	jsonBody := `{"data": "the title"}`
-	rr := webHook(t, jsonBody)
+	rr := setupWebHook(t, jsonBody)
 
 	assert.EqualValues(t, http.StatusCreated, rr.Code)
 }
 
 func TestDBController_WebHook_BadRequest(t *testing.T) {
 	jsonBody := `{"money": "the title"}`
-	rr := webHook(t, jsonBody)
+	rr := setupWebHook(t, jsonBody)
 
 	assert.EqualValues(t, http.StatusBadRequest, rr.Code)
 }
 
 func TestDBController_WebHook_UnprocessableEntity(t *testing.T) {
 	jsonBody := ``
-	rr := webHook(t, jsonBody)
+	rr := setupWebHook(t, jsonBody)
 
 	assert.EqualValues(t, http.StatusUnprocessableEntity, rr.Code)
 }
 
+func TestDBController_Tweet_Success(t *testing.T) {
+	jsonBody := `{"message": "message", "time": "2021-07-12 12:55:50 +0200"}`
+	rr := setupTweet(t, jsonBody)
+
+	assert.EqualValues(t, http.StatusCreated, rr.Code)
+}
+
 func TestPingDB(t *testing.T) {
 	con, sqlMock := initTests(t)
-
 	PingDB(con.db)
 	// we make sure that all expectations were met
 	if err := sqlMock.ExpectationsWereMet(); err != nil {
@@ -67,21 +73,43 @@ func initTests(t *testing.T) (*MockDBController, sqlmock.Sqlmock) {
 	return controller, mock
 }
 
-func webHook(t *testing.T, jsonBody string) *httptest.ResponseRecorder {
+func setupWebHook(t *testing.T, jsonBody string) *httptest.ResponseRecorder {
+	const endpoint = "/webhook"
 	con, _ := initTests(t)
 	gin.SetMode(gin.TestMode)
 
 	reqBody := bytes.NewBufferString(jsonBody)
 
 	r := gin.Default()
-	req, err := http.NewRequest(http.MethodPost, "/create", reqBody)
+	req, err := http.NewRequest(http.MethodPost, endpoint, reqBody)
 
 	if err != nil {
 		t.Errorf("this is the error: %v\n", err)
 	}
 
 	rr := httptest.NewRecorder()
-	r.POST("/create", con.WebHook)
+	r.POST(endpoint, con.WebHook)
+	r.ServeHTTP(rr, req)
+
+	return rr
+}
+
+func setupTweet(t *testing.T, jsonBody string) *httptest.ResponseRecorder {
+	const endpoint = "/create"
+	con, _ := initTests(t)
+	gin.SetMode(gin.TestMode)
+
+	reqBody := bytes.NewBufferString(jsonBody)
+
+	r := gin.Default()
+	req, err := http.NewRequest(http.MethodPost, endpoint, reqBody)
+
+	if err != nil {
+		t.Errorf("this is the error: %v\n", err)
+	}
+
+	rr := httptest.NewRecorder()
+	r.POST(endpoint, con.Tweet)
 	r.ServeHTTP(rr, req)
 
 	return rr

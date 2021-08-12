@@ -3,10 +3,11 @@ package controller
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/RemeJuan/lattr/business/tweet"
-	twitter_client "github.com/RemeJuan/lattr/infrastructure/twitter-client"
+	"github.com/RemeJuan/lattr/infrastructure/twitter-client"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
@@ -39,20 +40,21 @@ func (con *DBController) Tweet(c *gin.Context) {
 	payload := make(map[string]string)
 	err := Decoder(c, &payload)
 
-	PingDB(con.db)
+	UnprocessableEntity(c, err)
 
-	InternalServerError(c, err)
+	PingDB(con.db)
 
 	tErr := tweet.ScheduleTweet(con.db, payload)
 
 	ErrorCheck(tErr)
 
-	c.JSON(200, "Tweet Queued")
+	c.JSON(201, "Tweet Queued")
 }
 
 func PingDB(con *gorm.DB) {
 	err := con.DB().Ping()
-	ErrorCheck(err)
+	fmt.Println(err)
+	//ErrorCheck(err)
 }
 
 func ErrorCheck(err error) {
@@ -68,12 +70,12 @@ func UnprocessableEntity(c *gin.Context, err error) {
 	}
 }
 
-func InternalServerError(c *gin.Context, err error) {
-	if err != nil {
-		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
+//func InternalServerError(c *gin.Context, err error) {
+//	if err != nil {
+//		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+//		return
+//	}
+//}
 
 func BadRequestError(c *gin.Context, err error) {
 	if err != nil {
