@@ -44,10 +44,8 @@ func TestScheduleTweet(t *testing.T) {
 	defer gdb.Close()
 
 	const sqlInsert = `INSERT INTO "tweets" ("created_at","updated_at","deleted_at","message","user_id","post_time","status") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "tweets"."id"`
-	//const sqlCreate = `CREATE TABLE "tweets" ("id" serial,"created_at" timestamp with time zone,"updated_at" timestamp with time zone,"deleted_at" timestamp with time zone,"message" text,"user_id" text,"post_time" text,"status" text , PRIMARY KEY ("id"))`
 
 	mock.ExpectBegin()
-	//mock.ExpectExec(regexp.QuoteMeta(sqlCreate))
 	mock.ExpectExec(regexp.QuoteMeta(sqlInsert)).WithArgs(AnyTime{}, AnyTime{}, tweet.DeletedAt, tweet.Message, tweet.UserId, tweet.PostTime, tweet.Status)
 	mock.ExpectCommit()
 

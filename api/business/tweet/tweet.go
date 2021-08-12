@@ -29,8 +29,6 @@ func ScheduleTweet(db *gorm.DB, tweet map[string]string) {
 		return
 	}
 
-	//db.AutoMigrate(&Tweet{})
-
 	db.Create(&t)
 }
 
