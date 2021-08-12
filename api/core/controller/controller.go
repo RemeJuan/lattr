@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/RemeJuan/lattr/business/tweet"
-	"github.com/RemeJuan/lattr/infrastructure/twitter-client"
+	twitter_client "github.com/RemeJuan/lattr/infrastructure/twitter-client"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
@@ -25,11 +25,11 @@ func (con *DBController) WebHook(c *gin.Context) {
 	webhookData := make(map[string]string)
 	err := Decoder(c, &webhookData)
 
-	InternalServerError(c, err)
+	UnprocessableEntity(c, err)
 
 	if len(webhookData["data"]) > 0 {
 		twitter_client.CreateTweet(webhookData["data"])
-		c.JSON(200, "Tweet Queued")
+		c.JSON(http.StatusCreated, "Tweet Queued")
 	} else {
 		BadRequestError(c, errors.New("invalid payload"))
 	}
@@ -37,7 +37,7 @@ func (con *DBController) WebHook(c *gin.Context) {
 
 func (con *DBController) Tweet(c *gin.Context) {
 	payload := make(map[string]string)
-	err := json.NewDecoder(c.Request.Body).Decode(&payload)
+	err := Decoder(c, &payload)
 
 	PingDB(con.db)
 
@@ -61,14 +61,25 @@ func ErrorCheck(err error) {
 	}
 }
 
+func UnprocessableEntity(c *gin.Context, err error) {
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+}
+
 func InternalServerError(c *gin.Context, err error) {
-	http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
-	return
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func BadRequestError(c *gin.Context, err error) {
-	http.Error(c.Writer, err.Error(), http.StatusBadRequest)
-	return
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusBadRequest)
+		return
+	}
 }
 
 func Decoder(c *gin.Context, data *map[string]string) error {

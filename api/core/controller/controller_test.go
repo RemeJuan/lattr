@@ -1,14 +1,16 @@
 package controller
 
 import (
+	"bytes"
 	"database/sql"
-	"errors"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,7 +19,38 @@ type MockDBController struct {
 	db *gorm.DB
 }
 
-func InitTests(t *testing.T) (*MockDBController, sqlmock.Sqlmock) {
+func TestDBController_WebHook_Success(t *testing.T) {
+	jsonBody := `{"data": "the title"}`
+	rr := webHook(t, jsonBody)
+
+	assert.EqualValues(t, http.StatusCreated, rr.Code)
+}
+
+func TestDBController_WebHook_BadRequest(t *testing.T) {
+	jsonBody := `{"money": "the title"}`
+	rr := webHook(t, jsonBody)
+
+	assert.EqualValues(t, http.StatusBadRequest, rr.Code)
+}
+
+func TestDBController_WebHook_UnprocessableEntity(t *testing.T) {
+	jsonBody := ``
+	rr := webHook(t, jsonBody)
+
+	assert.EqualValues(t, http.StatusUnprocessableEntity, rr.Code)
+}
+
+func TestPingDB(t *testing.T) {
+	con, sqlMock := initTests(t)
+
+	PingDB(con.db)
+	// we make sure that all expectations were met
+	if err := sqlMock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func initTests(t *testing.T) (*MockDBController, sqlmock.Sqlmock) {
 	var controller *MockDBController
 	var mock sqlmock.Sqlmock
 	var err error
@@ -34,41 +67,22 @@ func InitTests(t *testing.T) (*MockDBController, sqlmock.Sqlmock) {
 	return controller, mock
 }
 
-func TestDBController_WebHook(t *testing.T) {
-	//gin.SetMode(gin.TestMode)
-	//w := httptest.NewRecorder()
-	//c, _ := gin.CreateTestContext(w)
-	//
-	//con, db := InitTests(t)
+func webHook(t *testing.T, jsonBody string) *httptest.ResponseRecorder {
+	con, _ := initTests(t)
+	gin.SetMode(gin.TestMode)
 
-}
+	reqBody := bytes.NewBufferString(jsonBody)
 
-func TestPingDB(t *testing.T) {
-	con, sqlMock := InitTests(t)
+	r := gin.Default()
+	req, err := http.NewRequest(http.MethodPost, "/create", reqBody)
 
-	PingDB(con.db)
-	// we make sure that all expectations were met
-	if err := sqlMock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
+	if err != nil {
+		t.Errorf("this is the error: %v\n", err)
 	}
-}
 
-func TestErrorCheck(t *testing.T) {
-	ErrorCheck(nil)
-}
+	rr := httptest.NewRecorder()
+	r.POST("/create", con.WebHook)
+	r.ServeHTTP(rr, req)
 
-func TestInternalServerError(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-
-	InternalServerError(c, errors.New(""))
-}
-
-func TestBadRequestError(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-
-	BadRequestError(c, errors.New(""))
+	return rr
 }
