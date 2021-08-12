@@ -42,7 +42,9 @@ func (con *DBController) Tweet(c *gin.Context) {
 
 	InternalServerError(c, err)
 
-	tweet.ScheduleTweet(con.db, payload)
+	tErr := tweet.ScheduleTweet(con.db, payload)
+
+	ErrorCheck(tErr)
 }
 
 func PingDB(con *gorm.DB) {
