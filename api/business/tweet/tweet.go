@@ -22,16 +22,14 @@ type Tweet struct {
 	Status   tweetStatus `json:"Status"`
 }
 
-func ScheduleTweet(db *gorm.DB, tweet map[string]string) {
+func ScheduleTweet(db *gorm.DB, tweet map[string]string) error {
 	t, err := BuildTweet(tweet)
 
 	if err != nil {
-		return
+		return err
 	}
 
-	//db.AutoMigrate(&Tweet{})
-
-	db.Create(&t)
+	return db.Create(&t).Error
 }
 
 func BuildTweet(data map[string]string) (Tweet, error) {
