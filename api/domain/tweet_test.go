@@ -10,95 +10,6 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 )
 
-func TestTweetRepo_Get(t *testing.T) {
-	var createdAt = time.Now()
-	var modified = time.Now()
-
-	db, mock, err := sqlmock.New()
-
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	defer db.Close()
-
-	s := InitTweetRepository(db)
-
-	const postTime = "2021-07-12 10:55:50 +0000 UTC"
-	const userId = "001"
-	const recordId int64 = 001
-	var message = "message"
-
-	expected := &Tweet{
-		Id:        1,
-		UserId:    userId,
-		Message:   message,
-		PostTime:  postTime,
-		Status:    Pending,
-		CreatedAt: createdAt,
-		Modified:  modified,
-	}
-
-	t.Run("Success", func(t *testing.T) {
-		const wantError = false
-
-		rows := sqlmock.NewRows([]string{"Id", "UserId", "Message", "PostTime", "Status", "CreatedAt", "Modified"}).AddRow(recordId, userId, message, postTime, Pending, createdAt, modified)
-
-		const sqlQuery = "SELECT (.+) FROM tweets"
-		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(recordId).WillReturnRows(rows)
-
-		got, err := s.Get(recordId)
-
-		if (err != nil) != wantError {
-			t.Errorf("Get() error new = %v", err)
-			return
-		}
-
-		if err == nil && !reflect.DeepEqual(got, expected) {
-			t.Errorf("Get() = %v, want %v", got, expected)
-		}
-	})
-
-	t.Run("Not Found", func(t *testing.T) {
-		const wantError = true
-		expected := Tweet{}
-		rows := sqlmock.NewRows([]string{"Id", "UserId", "Message", "PostTime", "Status", "CreatedAt", "Modified"})
-
-		const sqlQuery = "SELECT (.+) FROM tweets"
-		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(recordId).WillReturnRows(rows)
-
-		got, err := s.Get(recordId)
-
-		if (err != nil) != wantError {
-			t.Errorf("Get() error new = %v, wantErr %v", err, true)
-			return
-		}
-
-		if err == nil && !reflect.DeepEqual(got, expected) {
-			t.Errorf("Get() = %v, want %v", got, expected)
-		}
-	})
-
-	t.Run("Invalid Prepare", func(t *testing.T) {
-		const wantError = true
-		expected := Tweet{}
-		rows := sqlmock.NewRows([]string{"Id", "UserId", "Message", "PostTime", "Status", "CreatedAt", "Modified"}).AddRow(recordId, userId, message, postTime, Pending, createdAt, modified)
-
-		const sqlQuery = "SELECT (.+) FROM wrongTable"
-		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(recordId).WillReturnRows(rows)
-
-		got, err := s.Get(recordId)
-
-		if (err != nil) != wantError {
-			t.Errorf("Get() error new = %v, wantErr %v", err, true)
-			return
-		}
-
-		if err == nil && !reflect.DeepEqual(got, expected) {
-			t.Errorf("Get() = %v, want %v", got, expected)
-		}
-	})
-}
-
 func TestTweetRepo_Create(t *testing.T) {
 	var createdAt = time.Now()
 
@@ -217,6 +128,95 @@ func TestTweetRepo_Create(t *testing.T) {
 
 		if err == nil && !reflect.DeepEqual(got, expected) {
 			t.Errorf("Create() = %v, want %v", got, expected)
+		}
+	})
+}
+
+func TestTweetRepo_Get(t *testing.T) {
+	var createdAt = time.Now()
+	var modified = time.Now()
+
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	s := InitTweetRepository(db)
+
+	const postTime = "2021-07-12 10:55:50 +0000 UTC"
+	const userId = "001"
+	const recordId int64 = 001
+	var message = "message"
+
+	expected := &Tweet{
+		Id:        1,
+		UserId:    userId,
+		Message:   message,
+		PostTime:  postTime,
+		Status:    Pending,
+		CreatedAt: createdAt,
+		Modified:  modified,
+	}
+
+	t.Run("Success", func(t *testing.T) {
+		const wantError = false
+
+		rows := sqlmock.NewRows([]string{"Id", "UserId", "Message", "PostTime", "Status", "CreatedAt", "Modified"}).AddRow(recordId, userId, message, postTime, Pending, createdAt, modified)
+
+		const sqlQuery = "SELECT (.+) FROM tweets"
+		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(recordId).WillReturnRows(rows)
+
+		got, err := s.Get(recordId)
+
+		if (err != nil) != wantError {
+			t.Errorf("Get() error new = %v", err)
+			return
+		}
+
+		if err == nil && !reflect.DeepEqual(got, expected) {
+			t.Errorf("Get() = %v, want %v", got, expected)
+		}
+	})
+
+	t.Run("Not Found", func(t *testing.T) {
+		const wantError = true
+		expected := Tweet{}
+		rows := sqlmock.NewRows([]string{"Id", "UserId", "Message", "PostTime", "Status", "CreatedAt", "Modified"})
+
+		const sqlQuery = "SELECT (.+) FROM tweets"
+		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(recordId).WillReturnRows(rows)
+
+		got, err := s.Get(recordId)
+
+		if (err != nil) != wantError {
+			t.Errorf("Get() error new = %v, wantErr %v", err, true)
+			return
+		}
+
+		if err == nil && !reflect.DeepEqual(got, expected) {
+			t.Errorf("Get() = %v, want %v", got, expected)
+		}
+	})
+
+	t.Run("Invalid Prepare", func(t *testing.T) {
+		const wantError = true
+		expected := Tweet{}
+		rows := sqlmock.NewRows([]string{"Id", "UserId", "Message", "PostTime", "Status", "CreatedAt", "Modified"}).AddRow(recordId, userId, message, postTime, Pending, createdAt, modified)
+
+		const sqlQuery = "SELECT (.+) FROM wrongTable"
+		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(recordId).WillReturnRows(rows)
+
+		got, err := s.Get(recordId)
+
+		if (err != nil) != wantError {
+			t.Errorf("Get() error new = %v, wantErr %v", err, true)
+			return
+		}
+
+		if err == nil && !reflect.DeepEqual(got, expected) {
+			t.Errorf("Get() = %v, want %v", got, expected)
 		}
 	})
 }

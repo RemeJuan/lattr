@@ -32,6 +32,12 @@ type tweetRepo struct {
 	db *sql.DB
 }
 
+func InitTweetRepository(db *sql.DB) TweetRepoInterface {
+	return &tweetRepo{
+		db: db,
+	}
+}
+
 func (tr *tweetRepo) Initialize() *sql.DB {
 	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 
@@ -44,17 +50,10 @@ func (tr *tweetRepo) Initialize() *sql.DB {
 	return db
 }
 
-func InitTweetRepository(db *sql.DB) TweetRepoInterface {
-	return &tweetRepo{
-		db: db,
-	}
-}
-
 func (tr *tweetRepo) Create(tweet *Tweet) (*Tweet, error_utils.MessageErr) {
 	stmt, err := tr.db.Prepare(queryInsertTweet)
 
 	if err != nil {
-		fmt.Println(err)
 		message := fmt.Sprintf("Error when trying to prepare all messages: %s", err.Error())
 		return nil, error_utils.InternalServerError(message)
 	}
@@ -67,7 +66,7 @@ func (tr *tweetRepo) Create(tweet *Tweet) (*Tweet, error_utils.MessageErr) {
 
 	msgId, inErr := insertResult.LastInsertId()
 	if inErr != nil {
-		message := fmt.Sprintf("error when trying to save message: %s", err.Error())
+		message := fmt.Sprintf("error when trying to save tweet: %s", err.Error())
 		return nil, error_utils.InternalServerError(message)
 	}
 
