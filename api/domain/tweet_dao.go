@@ -16,12 +16,14 @@ var (
 var (
 	queryGetTweet    = "SELECT Id, UserId, Message, PostTime, Status, CreatedAt, Modified FROM tweets WHERE id=?;"
 	queryInsertTweet = "INSERT INTO tweets(UserId, Message, PostTime, Status, CreatedAt) VALUES(?, ?, ?, ?, ?);"
+	queryUpdateTweet = "UPDATE tweets SET Message=?, PostTime=? Status=? Modified=? WHERE id=?;"
 )
 
 type TweetRepoInterface interface {
 	Initialize() *sql.DB
 	Create(*Tweet) (*Tweet, error_utils.MessageErr)
 	Get(int64) (*Tweet, error_utils.MessageErr)
+	Update(*Tweet) (*Tweet, error_utils.MessageErr)
 }
 
 type tweetRepo struct {
@@ -92,6 +94,22 @@ func (tr *tweetRepo) Get(id int64) (*Tweet, error_utils.MessageErr) {
 	}
 
 	return &tweet, nil
+}
+
+func (tr *tweetRepo) Update(tweet *Tweet) (*Tweet, error_utils.MessageErr) {
+	stmt, err := tr.db.Prepare(queryUpdateTweet)
+
+	if err != nil {
+		message := fmt.Sprintf("error when trying to prepare user to update: %s", err.Error())
+		return nil, error_utils.InternalServerError(message)
+	}
+	defer stmt.Close()
+
+	_, updateErr := stmt.Exec(tweet.Message, tweet.PostTime, tweet.Status, tweet.Modified, tweet.Id)
+	if updateErr != nil {
+		return nil, error_formats.ParseError(updateErr)
+	}
+	return tweet, nil
 }
 
 func checkError(err error) {

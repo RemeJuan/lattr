@@ -23,10 +23,10 @@ func TestTweetRepo_Get(t *testing.T) {
 
 	s := InitTweetRepository(db)
 
+	const postTime = "2021-07-12 10:55:50 +0000 UTC"
+	const userId = "001"
+	const recordId int64 = 001
 	var message = "message"
-	var postTime = "2021-07-12 10:55:50 +0000 UTC"
-	var userId = "001"
-	var recordId int64 = 001
 
 	expected := &Tweet{
 		Id:        1,
@@ -111,10 +111,10 @@ func TestTweetRepo_Create(t *testing.T) {
 
 	s := InitTweetRepository(db)
 
+	const postTime = "2021-07-12 10:55:50 +0000 UTC"
+	const userId = "001"
+	const recordId int64 = 1
 	var message = ""
-	var postTime = "2021-07-12 10:55:50 +0000 UTC"
-	var userId = "001"
-	var recordId int64 = 1
 
 	expected := &Tweet{
 		Id:        recordId,
@@ -199,6 +199,140 @@ func TestTweetRepo_Create(t *testing.T) {
 
 		if err == nil && !reflect.DeepEqual(got, expected) {
 			t.Errorf("Create() = %v, want %v", got, expected)
+		}
+	})
+}
+
+func TestTweetRepo_Update(t *testing.T) {
+	var modified = time.Now()
+
+	db, mock, err := sqlmock.New()
+
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	s := InitTweetRepository(db)
+
+	const postTime = "2021-07-12 10:55:50 +0000 UTC"
+	const recordId int64 = 001
+	const status = Posted
+	var message = "message"
+
+	expected := &Tweet{
+		Id:       recordId,
+		Message:  message,
+		PostTime: postTime,
+		Status:   status,
+		Modified: modified,
+	}
+
+	request := &Tweet{
+		Id:       recordId,
+		Message:  message,
+		PostTime: postTime,
+		Status:   status,
+		Modified: modified,
+	}
+
+	t.Run("Success", func(t *testing.T) {
+		const wantError = false
+
+		sqlQuery := "UPDATE tweets"
+		sqlReturn := sqlmock.NewResult(0, 1)
+		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(message, postTime, status, modified, recordId).WillReturnResult(sqlReturn)
+
+		got, err := s.Update(request)
+
+		if (err != nil) != wantError {
+			fmt.Println("this is the error message: ", err.Message())
+			t.Errorf("Update() error = %v, wantErr %v", err, wantError)
+			return
+		}
+
+		if err == nil && !reflect.DeepEqual(got, expected) {
+			t.Errorf("Update() = %v, want %v", got, expected)
+		}
+	})
+
+	t.Run("Invalid SQL Query", func(t *testing.T) {
+		const wantError = true
+
+		sqlQuery := "UPDATER tweets"
+		sqlReturn := errors.New("error in sql query statement")
+		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(message, postTime, status, modified, recordId).WillReturnError(sqlReturn)
+
+		got, err := s.Update(request)
+
+		if (err != nil) != wantError {
+			fmt.Println("this is the error message: ", err.Message())
+			t.Errorf("Update() error = %v, wantErr %v", err, wantError)
+			return
+		}
+
+		if err == nil && !reflect.DeepEqual(got, expected) {
+			t.Errorf("Update() = %v, want %v", got, expected)
+		}
+	})
+
+	t.Run("Invalid Query Id", func(t *testing.T) {
+		const wantError = true
+
+		sqlQuery := "UPDATE tweets"
+		sqlReturn := errors.New("invalid update id")
+		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(message, postTime, status, modified, 123).WillReturnError(sqlReturn)
+
+		got, err := s.Update(request)
+
+		if (err != nil) != wantError {
+			fmt.Println("this is the error message: ", err.Message())
+			t.Errorf("Update() error = %v, wantErr %v", err, wantError)
+			return
+		}
+
+		if err == nil && !reflect.DeepEqual(got, expected) {
+			t.Errorf("Update() = %v, want %v", got, expected)
+		}
+	})
+
+	t.Run("Empty Message", func(t *testing.T) {
+		const wantError = true
+
+		sqlQuery := "UPDATE tweets"
+		sqlReturn := errors.New("please enter a valid title")
+		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(message, postTime, status, modified, 123).WillReturnError(sqlReturn)
+
+		got, err := s.Update(request)
+
+		if (err != nil) != wantError {
+			fmt.Println("this is the error message: ", err.Message())
+			t.Errorf("Update() error = %v, wantErr %v", err, wantError)
+			return
+		}
+
+		if err == nil && !reflect.DeepEqual(got, expected) {
+			t.Errorf("Update() = %v, want %v", got, expected)
+		}
+	})
+
+	t.Run("Update failed", func(t *testing.T) {
+		const wantError = true
+
+		sqlQuery := "UPDATE tweets"
+		sqlReturn := sqlmock.NewErrorResult(errors.New("update failed"))
+		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(message, postTime, status, modified, recordId).WillReturnResult(sqlReturn)
+
+		got, err := s.Update(request)
+
+		if (err != nil) != wantError {
+			fmt.Println("this is the error message: ", err.Message())
+			t.Errorf("Update() error = %v, wantErr %v", err, wantError)
+			return
+		}
+
+		if err == nil && !reflect.DeepEqual(got, expected) {
+			t.Errorf("Update() = %v, want %v", got, expected)
 		}
 	})
 }
