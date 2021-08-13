@@ -67,9 +67,9 @@ func TestTweetRepo_Create(t *testing.T) {
 
 		s := InitTweetRepository(db)
 
-		message = ""
+		const expected = "error when trying to save data: empty title"
 
-		expected := "error when trying to save message: empty title"
+		message = ""
 
 		sqlQuery := "INSERT INTO tweets"
 		sqlReturn := errors.New("empty title")
@@ -93,7 +93,7 @@ func TestTweetRepo_Create(t *testing.T) {
 
 		s := InitTweetRepository(db)
 
-		expected := "error when trying to save message: invalid sql query"
+		const expected = "error when trying to save data: invalid sql query"
 
 		const sqlQuery = "INSERT INTO tweets"
 		sqlReturn := errors.New("invalid sql query")
@@ -110,21 +110,23 @@ func TestTweetRepo_Get(t *testing.T) {
 	var createdAt = time.Now()
 	var modified = time.Now()
 
-	db, mock, err := sqlmock.New()
-
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	defer db.Close()
-
-	s := InitTweetRepository(db)
-
 	const postTime = "2021-07-12 10:55:50 +0000 UTC"
 	const userId = "001"
 	const recordId int64 = 001
 	var message = "message"
 
 	t.Run("Success", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTweetRepository(db)
+
+		rows := sqlmock.NewRows([]string{"Id", "UserId", "Message", "PostTime", "Status", "CreatedAt", "Modified"}).AddRow(recordId, userId, message, postTime, Pending, createdAt, modified)
+
 		expected := &Tweet{
 			Id:        1,
 			UserId:    userId,
@@ -134,8 +136,6 @@ func TestTweetRepo_Get(t *testing.T) {
 			CreatedAt: createdAt,
 			Modified:  modified,
 		}
-
-		rows := sqlmock.NewRows([]string{"Id", "UserId", "Message", "PostTime", "Status", "CreatedAt", "Modified"}).AddRow(recordId, userId, message, postTime, Pending, createdAt, modified)
 
 		const sqlQuery = "SELECT (.+) FROM tweets"
 		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(recordId).WillReturnRows(rows)
@@ -147,7 +147,17 @@ func TestTweetRepo_Get(t *testing.T) {
 	})
 
 	t.Run("Not Found", func(t *testing.T) {
-		expected := "no record matching given id"
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTweetRepository(db)
+
+		const expected = "no record matching given id"
+
 		rows := sqlmock.NewRows([]string{"Id", "UserId", "Message", "PostTime", "Status", "CreatedAt", "Modified"})
 
 		const sqlQuery = "SELECT (.+) FROM tweets"
@@ -160,6 +170,15 @@ func TestTweetRepo_Get(t *testing.T) {
 	})
 
 	t.Run("Invalid Prepare", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTweetRepository(db)
+
 		const expected = "error when trying to save message: invalid sql query"
 
 		const sqlQuery = "SELECT (.+) FROM tweets"
@@ -190,14 +209,6 @@ func TestTweetRepo_Update(t *testing.T) {
 	}
 
 	t.Run("Success", func(t *testing.T) {
-		expected := &Tweet{
-			Id:       recordId,
-			Message:  message,
-			PostTime: postTime,
-			Status:   status,
-			Modified: modified,
-		}
-
 		db, mock, err := sqlmock.New()
 
 		if err != nil {
@@ -206,6 +217,14 @@ func TestTweetRepo_Update(t *testing.T) {
 		defer db.Close()
 
 		s := InitTweetRepository(db)
+
+		expected := &Tweet{
+			Id:       recordId,
+			Message:  message,
+			PostTime: postTime,
+			Status:   status,
+			Modified: modified,
+		}
 
 		const sqlQuery = "UPDATE tweets"
 		sqlReturn := sqlmock.NewResult(0, 1)
@@ -218,7 +237,6 @@ func TestTweetRepo_Update(t *testing.T) {
 	})
 
 	t.Run("Invalid SQL Query", func(t *testing.T) {
-		const expected = "error when trying to save data: error in sql query statement"
 		db, mock, err := sqlmock.New()
 
 		if err != nil {
@@ -227,6 +245,8 @@ func TestTweetRepo_Update(t *testing.T) {
 		defer db.Close()
 
 		s := InitTweetRepository(db)
+
+		const expected = "error when trying to save data: error in sql query statement"
 
 		const sqlQuery = "UPDATE tweets"
 		sqlReturn := errors.New("error in sql query statement")
@@ -239,7 +259,6 @@ func TestTweetRepo_Update(t *testing.T) {
 	})
 
 	t.Run("Invalid Query Id", func(t *testing.T) {
-		const expected = "error when trying to save data: invalid update id"
 		db, mock, err := sqlmock.New()
 
 		if err != nil {
@@ -248,6 +267,8 @@ func TestTweetRepo_Update(t *testing.T) {
 		defer db.Close()
 
 		s := InitTweetRepository(db)
+
+		const expected = "error when trying to save data: invalid update id"
 
 		const sqlQuery = "UPDATE tweets"
 		var sqlReturn = errors.New("invalid update id")
@@ -260,8 +281,6 @@ func TestTweetRepo_Update(t *testing.T) {
 	})
 
 	t.Run("Empty Message", func(t *testing.T) {
-		const expected = "error when trying to save data: please enter a valid title"
-
 		db, mock, err := sqlmock.New()
 
 		if err != nil {
@@ -270,6 +289,8 @@ func TestTweetRepo_Update(t *testing.T) {
 		defer db.Close()
 
 		s := InitTweetRepository(db)
+
+		const expected = "error when trying to save data: please enter a valid title"
 
 		const sqlQuery = "UPDATE tweets"
 		sqlReturn := errors.New("please enter a valid title")
@@ -282,8 +303,6 @@ func TestTweetRepo_Update(t *testing.T) {
 	})
 
 	t.Run("Update failed", func(t *testing.T) {
-		const expected = "error when trying to save data: update failed"
-
 		db, mock, err := sqlmock.New()
 
 		if err != nil {
@@ -292,6 +311,8 @@ func TestTweetRepo_Update(t *testing.T) {
 		defer db.Close()
 
 		s := InitTweetRepository(db)
+
+		const expected = "error when trying to save data: update failed"
 
 		const sqlQuery = "UPDATE tweets"
 		sqlReturn := errors.New("update failed")
@@ -317,6 +338,15 @@ func TestTweetRepo_GetAll(t *testing.T) {
 	request := userId
 
 	t.Run("Success", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTweetRepository(db)
+
 		expected := []Tweet{
 			{
 				Id:        recordId,
@@ -338,15 +368,6 @@ func TestTweetRepo_GetAll(t *testing.T) {
 			},
 		}
 
-		db, mock, err := sqlmock.New()
-
-		if err != nil {
-			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-		}
-		defer db.Close()
-
-		s := InitTweetRepository(db)
-
 		rows := sqlmock.NewRows([]string{"Id", "UserId", "Message", "PostTime", "Status", "CreatedAt", "Modified"}).AddRow(recordId, userId, message, postTime, status, createdAt, modified).AddRow(002, userId, message, postTime, status, createdAt, modified)
 
 		const sqlQuery = "SELECT (.+) FROM tweets"
@@ -359,7 +380,6 @@ func TestTweetRepo_GetAll(t *testing.T) {
 	})
 
 	t.Run("Invalid SQL Syntax", func(t *testing.T) {
-		const expected = "error when trying to save data: error when trying to prepare all messages"
 		db, mock, err := sqlmock.New()
 
 		if err != nil {
@@ -368,6 +388,8 @@ func TestTweetRepo_GetAll(t *testing.T) {
 		defer db.Close()
 
 		s := InitTweetRepository(db)
+
+		const expected = "error when trying to save data: error when trying to prepare all messages"
 
 		const sqlQuery = "SELECT (.+) FROM tweets"
 		sqlResult := errors.New("error when trying to prepare all messages")
@@ -380,8 +402,6 @@ func TestTweetRepo_GetAll(t *testing.T) {
 	})
 
 	t.Run("No results", func(t *testing.T) {
-		const expected = "no records found"
-
 		db, mock, err := sqlmock.New()
 
 		if err != nil {
@@ -390,6 +410,8 @@ func TestTweetRepo_GetAll(t *testing.T) {
 		defer db.Close()
 
 		s := InitTweetRepository(db)
+
+		const expected = "no records found"
 
 		rows := sqlmock.NewRows([]string{"Id", "UserId", "Message", "PostTime", "Status", "CreatedAt", "Modified"})
 
