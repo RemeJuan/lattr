@@ -17,7 +17,7 @@ var (
 	queryGetTweet     = "SELECT Id, UserId, Message, PostTime, Status, CreatedAt, Modified FROM tweets WHERE id=?;"
 	queryInsertTweet  = "INSERT INTO tweets(UserId, Message, PostTime, Status, CreatedAt) VALUES(?, ?, ?, ?, ?);"
 	queryUpdateTweet  = "UPDATE tweets SET Message=?, PostTime=? Status=? Modified=? WHERE id=?;"
-	queryGetAllTweets = "SELECT Id, UserId, Message, PostTime, Status, CreatedAt, Modified FROM tweets WHERE UserId=?;"
+	queryGetAllTweets = "SELECT * FROM tweets WHERE UserId=?;"
 )
 
 type TweetRepoInterface interface {
@@ -90,7 +90,6 @@ func (tr *tweetRepo) Get(id int64) (*Tweet, error_utils.MessageErr) {
 	result := stmt.QueryRow(id)
 
 	if getError := result.Scan(&tweet.Id, &tweet.UserId, &tweet.Message, &tweet.PostTime, &tweet.Status, &tweet.CreatedAt, &tweet.Modified); getError != nil {
-		fmt.Println("this is the error man: ", getError)
 		return nil, error_formats.ParseError(getError)
 	}
 
