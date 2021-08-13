@@ -14,11 +14,13 @@ var (
 )
 
 var (
-	getTweetQuery = `SELECT Id, UserId, Message, PostTime, Status, CreatedAt, Modified FROM tweets WHERE id=?;`
+	queryGetTweet    = "SELECT Id, UserId, Message, PostTime, Status, CreatedAt, Modified FROM tweets WHERE id=?;"
+	queryInsertTweet = "INSERT INTO tweets(UserId, Message, PostTime, Status, CreatedAt) VALUES(?, ?, ?, ?, ?);"
 )
 
 type TweetRepoInterface interface {
 	Initialize() *sql.DB
+	Create(*Tweet) (*Tweet, error_utils.MessageErr)
 	Get(int64) (*Tweet, error_utils.MessageErr)
 }
 
@@ -44,10 +46,37 @@ func InitTweetRepository(db *sql.DB) TweetRepoInterface {
 	}
 }
 
-func (tr *tweetRepo) Get(id int64) (*Tweet, error_utils.MessageErr) {
-	stmt, err := tr.db.Prepare(getTweetQuery)
+func (tr *tweetRepo) Create(tweet *Tweet) (*Tweet, error_utils.MessageErr) {
+	stmt, err := tr.db.Prepare(queryInsertTweet)
+
 	if err != nil {
 		fmt.Println(err)
+		message := fmt.Sprintf("Error when trying to prepare all messages: %s", err.Error())
+		return nil, error_utils.InternalServerError(message)
+	}
+	defer stmt.Close()
+
+	insertResult, createErr := stmt.Exec(tweet.UserId, tweet.Message, tweet.PostTime, Pending, tweet.CreatedAt)
+	if createErr != nil {
+		return nil, error_formats.ParseError(createErr)
+	}
+
+	msgId, inErr := insertResult.LastInsertId()
+	if inErr != nil {
+		message := fmt.Sprintf("error when trying to save message: %s", err.Error())
+		return nil, error_utils.InternalServerError(message)
+	}
+
+	tweet.Id = msgId
+	tweet.Status = Pending
+
+	return tweet, nil
+}
+
+func (tr *tweetRepo) Get(id int64) (*Tweet, error_utils.MessageErr) {
+	stmt, err := tr.db.Prepare(queryGetTweet)
+
+	if err != nil {
 		message := fmt.Sprintf("Error retrieving record: %s", err)
 		return nil, error_utils.InternalServerError(message)
 	}

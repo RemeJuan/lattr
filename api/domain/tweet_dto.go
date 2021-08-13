@@ -16,7 +16,7 @@ const (
 )
 
 type Tweet struct {
-	Id        int         `json:"id"`
+	Id        int64       `json:"id"`
 	Message   string      `json:"message"`
 	UserId    string      `json:"userId"`
 	PostTime  string      `json:"postTime"`
