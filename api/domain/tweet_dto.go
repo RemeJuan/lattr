@@ -36,7 +36,7 @@ func (t *Tweet) Validate() error_utils.MessageErr {
 	}
 
 	if err != nil {
-		return error_utils.UnprocessableEntityError(`Invalid date/time format, please use "CCYY-MM-DD HH:mm:ss -zzzz"`)
+		return error_utils.UnprocessableEntityError(`Invalid date/time format, please use "CCYY-MM-DD HH:mm:ss -zzzz`)
 	}
 
 	return nil
