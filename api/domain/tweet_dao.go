@@ -49,7 +49,7 @@ func (tr *tweetRepo) Initialize() *sql.DB {
 
 	fmt.Println("Connected!")
 
-	return db
+	return tr.db
 }
 
 func (tr *tweetRepo) Create(tweet *Tweet) (*Tweet, error_utils.MessageErr) {
