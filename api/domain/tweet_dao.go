@@ -18,6 +18,7 @@ var (
 	queryInsertTweet  = "INSERT INTO tweets(UserId, Message, PostTime, Status, CreatedAt) VALUES(?, ?, ?, ?, ?);"
 	queryUpdateTweet  = "UPDATE tweets SET Message=?, PostTime=? Status=? Modified=? WHERE id=?;"
 	queryGetAllTweets = "SELECT * FROM tweets WHERE UserId=?;"
+	queryDeleteTweet  = "DELETE FROM tweets WHERE id=?;"
 )
 
 type TweetRepoInterface interface {
@@ -26,6 +27,7 @@ type TweetRepoInterface interface {
 	Get(int64) (*Tweet, error_utils.MessageErr)
 	GetAll(string) ([]Tweet, error_utils.MessageErr)
 	Update(*Tweet) (*Tweet, error_utils.MessageErr)
+	Delete(int64) error_utils.MessageErr
 }
 
 type tweetRepo struct {
@@ -54,7 +56,7 @@ func (tr *tweetRepo) Create(tweet *Tweet) (*Tweet, error_utils.MessageErr) {
 	stmt, err := tr.db.Prepare(queryInsertTweet)
 
 	if err != nil {
-		message := fmt.Sprintf("Error when trying to prepare all messages: %s", err.Error())
+		message := fmt.Sprintf("Error when trying to prepare all entries: %s", err.Error())
 		return nil, error_utils.InternalServerError(message)
 	}
 	defer stmt.Close()
@@ -65,8 +67,9 @@ func (tr *tweetRepo) Create(tweet *Tweet) (*Tweet, error_utils.MessageErr) {
 	}
 
 	msgId, inErr := insertResult.LastInsertId()
+
 	if inErr != nil {
-		message := fmt.Sprintf("error when trying to save tweet: %s", err.Error())
+		message := fmt.Sprintf("error when trying to save data: %s", err.Error())
 		return nil, error_utils.InternalServerError(message)
 	}
 
@@ -100,7 +103,7 @@ func (tr *tweetRepo) Update(tweet *Tweet) (*Tweet, error_utils.MessageErr) {
 	stmt, err := tr.db.Prepare(queryUpdateTweet)
 
 	if err != nil {
-		message := fmt.Sprintf("error when trying to prepare user to update: %s", err.Error())
+		message := fmt.Sprintf("error when trying to prepare update: %s", err.Error())
 		return nil, error_utils.InternalServerError(message)
 	}
 	defer stmt.Close()
@@ -116,7 +119,7 @@ func (tr *tweetRepo) GetAll(userId string) ([]Tweet, error_utils.MessageErr) {
 	stmt, err := tr.db.Prepare(queryGetAllTweets)
 
 	if err != nil {
-		return nil, error_utils.InternalServerError(fmt.Sprintf("Error when trying to prepare all messages: %s", err.Error()))
+		return nil, error_utils.InternalServerError(fmt.Sprintf("Error when trying to prepare all entries: %s", err.Error()))
 	}
 	defer stmt.Close()
 
@@ -140,6 +143,19 @@ func (tr *tweetRepo) GetAll(userId string) ([]Tweet, error_utils.MessageErr) {
 		return nil, error_utils.NotFoundError("no records found")
 	}
 	return results, nil
+}
+
+func (tr *tweetRepo) Delete(id int64) error_utils.MessageErr {
+	stmt, err := tr.db.Prepare(queryDeleteTweet)
+	if err != nil {
+		return error_utils.InternalServerError(fmt.Sprintf("error when trying to delete record: %s", err.Error()))
+	}
+	defer stmt.Close()
+
+	if _, err := stmt.Exec(id); err != nil {
+		return error_utils.InternalServerError(fmt.Sprintf("error when trying to delete record %s", err.Error()))
+	}
+	return nil
 }
 
 func checkError(err error) {
