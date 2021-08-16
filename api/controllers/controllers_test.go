@@ -147,11 +147,10 @@ func TestGetTweet(t *testing.T) {
 				PostTime: postTime,
 				Status:   domain.Pending,
 			}, nil
-
 		}
 
 		r := gin.Default()
-		path := fmt.Sprintf("/tweets/%v", recordId)
+		path := fmt.Sprintf("%s/%v", basePath, recordId)
 		req, _ := http.NewRequest(http.MethodGet, path, nil)
 		rr := httptest.NewRecorder()
 		r.GET("/tweets/:id", GetTweet)
@@ -167,5 +166,45 @@ func TestGetTweet(t *testing.T) {
 		assert.EqualValues(t, message, tweet.Message)
 		assert.EqualValues(t, postTime, tweet.PostTime)
 		assert.EqualValues(t, domain.Pending, tweet.Status)
+	})
+
+	t.Run("Cannot parse ID", func(t *testing.T) {
+		services.TweetService = &serviceMock{}
+
+		const invalidID = "red"
+
+		r := gin.Default()
+		path := fmt.Sprintf("%s/%v", basePath, invalidID)
+		req, _ := http.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		r.GET("/tweets/:id", GetTweet)
+		r.ServeHTTP(rr, req)
+
+		msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+		assert.EqualValues(t, http.StatusUnprocessableEntity, msgErr.Status())
+		assert.EqualValues(t, "unable to parse ID", msgErr.Message())
+		assert.EqualValues(t, "invalid_request", msgErr.Error())
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		services.TweetService = &serviceMock{}
+
+		getTweetService = func(msgId int64) (*domain.Tweet, error_utils.MessageErr) {
+			return nil, error_utils.NotFoundError("unable to find item")
+		}
+
+		r := gin.Default()
+		path := fmt.Sprintf("%s/%v", basePath, recordId)
+		req, _ := http.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		r.GET("/tweets/:id", GetTweet)
+		r.ServeHTTP(rr, req)
+
+		msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+		assert.EqualValues(t, http.StatusNotFound, msgErr.Status())
+		assert.EqualValues(t, "unable to find item", msgErr.Message())
+		assert.EqualValues(t, "not_found", msgErr.Error())
 	})
 }

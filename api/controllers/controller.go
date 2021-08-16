@@ -34,6 +34,7 @@ func GetTweet(c *gin.Context) {
 	if parseErr != nil {
 		theErr := error_utils.UnprocessableEntityError("unable to parse ID")
 		c.JSON(theErr.Status(), theErr)
+		return
 	}
 
 	message, getErr := services.TweetService.Get(twId)
