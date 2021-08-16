@@ -63,8 +63,8 @@ func UpdateTweet(c *gin.Context) {
 	if parseErr != nil {
 		theErr := error_utils.UnprocessableEntityError("unable to parse ID")
 		c.JSON(theErr.Status(), theErr)
+		return
 	}
-
 	var tweet domain.Tweet
 	if err := c.ShouldBindJSON(&tweet); err != nil {
 		theErr := error_utils.UnprocessableEntityError("invalid json body")
@@ -90,6 +90,7 @@ func DeleteTweet(c *gin.Context) {
 	if parseErr != nil {
 		theErr := error_utils.UnprocessableEntityError("unable to parse ID")
 		c.JSON(theErr.Status(), theErr)
+		return
 	}
 
 	if err := services.TweetService.Delete(twId); err != nil {

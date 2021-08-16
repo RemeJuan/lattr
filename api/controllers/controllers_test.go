@@ -18,7 +18,7 @@ import (
 var (
 	createTweetService func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
 	getTweetService    func(msgId int64) (*domain.Tweet, error_utils.MessageErr)
-	updateTweetService func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
+	updateTweetService func(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
 	deleteTweetService func(msgId int64) error_utils.MessageErr
 	getAllTweetService func(userId string) ([]domain.Tweet, error_utils.MessageErr)
 )
@@ -285,5 +285,175 @@ func TestGetTweets(t *testing.T) {
 		assert.EqualValues(t, http.StatusNotFound, apiErr.Status())
 		assert.EqualValues(t, "not_found", apiErr.Error())
 		assert.EqualValues(t, "No results", apiErr.Message())
+	})
+}
+
+func TestUpdateTweet(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	const recordId int64 = 1
+	const postTime = "2021-07-12 10:55:50 +0000"
+
+	t.Run("Success", func(t *testing.T) {
+		services.TweetService = &serviceMock{}
+
+		const message = "different message"
+
+		updateTweetService = func(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
+				Id:       recordId,
+				Message:  message,
+				PostTime: postTime,
+				Status:   domain.Pending,
+			}, nil
+		}
+		inputJson := `{"message": "different message"}`
+		r := gin.Default()
+		path := fmt.Sprintf("%s/%v", basePath, recordId)
+		req, _ := http.NewRequest(http.MethodPut, path, bytes.NewBufferString(inputJson))
+		rr := httptest.NewRecorder()
+		r.PUT("/tweets/:id", UpdateTweet)
+		r.ServeHTTP(rr, req)
+
+		var tweet domain.Tweet
+		err := json.Unmarshal(rr.Body.Bytes(), &tweet)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, message)
+		assert.EqualValues(t, http.StatusOK, rr.Code)
+		assert.EqualValues(t, recordId, tweet.Id)
+		assert.EqualValues(t, message, tweet.Message)
+		assert.EqualValues(t, postTime, tweet.PostTime)
+		assert.EqualValues(t, domain.Pending, tweet.Status)
+	})
+
+	t.Run("Cannot parse ID", func(t *testing.T) {
+		services.TweetService = &serviceMock{}
+
+		const invalidID = "red"
+
+		inputJson := `{"message": "different message"}`
+		r := gin.Default()
+		path := fmt.Sprintf("%s/%v", basePath, invalidID)
+		req, _ := http.NewRequest(http.MethodPut, path, bytes.NewBufferString(inputJson))
+		rr := httptest.NewRecorder()
+		r.PUT("/tweets/:id", UpdateTweet)
+		r.ServeHTTP(rr, req)
+
+		msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+		assert.EqualValues(t, http.StatusUnprocessableEntity, msgErr.Status())
+		assert.EqualValues(t, "unable to parse ID", msgErr.Message())
+		assert.EqualValues(t, "invalid_request", msgErr.Error())
+	})
+
+	t.Run("Invalid JSON", func(t *testing.T) {
+		services.TweetService = &serviceMock{}
+
+		inputJson := ""
+		r := gin.Default()
+		path := fmt.Sprintf("%s/%v", basePath, recordId)
+		req, _ := http.NewRequest(http.MethodPut, path, bytes.NewBufferString(inputJson))
+		rr := httptest.NewRecorder()
+		r.PUT("/tweets/:id", UpdateTweet)
+		r.ServeHTTP(rr, req)
+
+		msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+		assert.EqualValues(t, http.StatusUnprocessableEntity, msgErr.Status())
+		assert.EqualValues(t, "invalid json body", msgErr.Message())
+		assert.EqualValues(t, "invalid_request", msgErr.Error())
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		services.TweetService = &serviceMock{}
+
+		updateTweetService = func(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
+			return nil, error_utils.NotFoundError("unable to find item")
+		}
+
+		inputJson := `{"message": "different message"}`
+		r := gin.Default()
+		path := fmt.Sprintf("%s/%v", basePath, recordId)
+		req, _ := http.NewRequest(http.MethodPut, path, bytes.NewBufferString(inputJson))
+		rr := httptest.NewRecorder()
+		r.PUT("/tweets/:id", UpdateTweet)
+		r.ServeHTTP(rr, req)
+
+		msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+		assert.EqualValues(t, http.StatusNotFound, msgErr.Status())
+		assert.EqualValues(t, "unable to find item", msgErr.Message())
+		assert.EqualValues(t, "not_found", msgErr.Error())
+	})
+}
+
+func TestDeleteTweet(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	const recordId int64 = 1
+
+	t.Run("Success", func(t *testing.T) {
+		services.TweetService = &serviceMock{}
+
+		deleteTweetService = func(id int64) error_utils.MessageErr {
+			return nil
+		}
+
+		r := gin.Default()
+		path := fmt.Sprintf("%s/%v", basePath, recordId)
+		req, _ := http.NewRequest(http.MethodDelete, path, nil)
+		rr := httptest.NewRecorder()
+		r.DELETE("/tweets/:id", DeleteTweet)
+		r.ServeHTTP(rr, req)
+
+		var result map[string]string
+		err := json.Unmarshal(rr.Body.Bytes(), &result)
+
+		assert.Nil(t, err)
+		assert.EqualValues(t, http.StatusOK, rr.Code)
+		assert.Equal(t, "deleted", result["status"])
+	})
+
+	t.Run("Unable to parse ID", func(t *testing.T) {
+		services.TweetService = &serviceMock{}
+
+		r := gin.Default()
+		path := fmt.Sprintf("%s/%v", basePath, "red")
+		req, _ := http.NewRequest(http.MethodDelete, path, nil)
+		rr := httptest.NewRecorder()
+		r.DELETE("/tweets/:id", DeleteTweet)
+		r.ServeHTTP(rr, req)
+
+		apiErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+		assert.Nil(t, err)
+		assert.EqualValues(t, http.StatusUnprocessableEntity, rr.Code)
+		assert.EqualValues(t, rr.Code, apiErr.Status())
+		assert.Equal(t, "unable to parse ID", apiErr.Message())
+		assert.Equal(t, "invalid_request", apiErr.Error())
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		services.TweetService = &serviceMock{}
+
+		deleteTweetService = func(id int64) error_utils.MessageErr {
+			return error_utils.InternalServerError("Unable to delete entry")
+		}
+
+		r := gin.Default()
+		path := fmt.Sprintf("%s/%v", basePath, recordId)
+		req, _ := http.NewRequest(http.MethodDelete, path, nil)
+		rr := httptest.NewRecorder()
+		r.DELETE("/tweets/:id", DeleteTweet)
+		r.ServeHTTP(rr, req)
+
+		apiErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+		assert.Nil(t, err)
+		assert.EqualValues(t, http.StatusInternalServerError, rr.Code)
+		assert.EqualValues(t, rr.Code, apiErr.Status())
+		assert.Equal(t, "Unable to delete entry", apiErr.Message())
+		assert.Equal(t, "server_error", apiErr.Error())
 	})
 }
