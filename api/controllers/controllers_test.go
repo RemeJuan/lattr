@@ -89,7 +89,7 @@ func TestCreateTweet(t *testing.T) {
 	t.Run("Invalid JSON", func(t *testing.T) {
 		inputJson := ""
 		r := gin.Default()
-		req, err := http.NewRequest(http.MethodPost, "/tweets", bytes.NewBufferString(inputJson))
+		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(inputJson))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
 		}
@@ -206,5 +206,84 @@ func TestGetTweet(t *testing.T) {
 		assert.EqualValues(t, http.StatusNotFound, msgErr.Status())
 		assert.EqualValues(t, "unable to find item", msgErr.Message())
 		assert.EqualValues(t, "not_found", msgErr.Error())
+	})
+}
+
+func TestGetTweets(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	const recordId int64 = 1
+	const postTime = "2021-07-12 10:55:50 +0000"
+
+	t.Run("Success", func(t *testing.T) {
+		services.TweetService = &serviceMock{}
+
+		const message = "the message"
+		const userId = "test"
+
+		getAllTweetService = func(userId string) ([]domain.Tweet, error_utils.MessageErr) {
+			return []domain.Tweet{
+				{
+					Id:       recordId,
+					Message:  message,
+					PostTime: postTime,
+					Status:   domain.Pending,
+				},
+				{
+					Id:       recordId,
+					Message:  message,
+					PostTime: postTime,
+					Status:   domain.Pending,
+				},
+			}, nil
+		}
+
+		r := gin.Default()
+		path := fmt.Sprintf("%s/all/%v", basePath, userId)
+		req, _ := http.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		r.GET("/tweets/all/:userId", GetTweets)
+		r.ServeHTTP(rr, req)
+
+		var tweets []domain.Tweet
+		err := json.Unmarshal(rr.Body.Bytes(), &tweets)
+
+		assert.Nil(t, err)
+		assert.NotNil(t, message)
+		assert.EqualValues(t, http.StatusOK, rr.Code)
+		assert.EqualValues(t, recordId, tweets[0].Id)
+		assert.EqualValues(t, message, tweets[0].Message)
+		assert.EqualValues(t, postTime, tweets[0].PostTime)
+		assert.EqualValues(t, domain.Pending, tweets[0].Status)
+
+		assert.EqualValues(t, recordId, tweets[1].Id)
+		assert.EqualValues(t, message, tweets[1].Message)
+		assert.EqualValues(t, postTime, tweets[1].PostTime)
+		assert.EqualValues(t, domain.Pending, tweets[1].Status)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		services.TweetService = &serviceMock{}
+
+		const userId = "test"
+
+		getAllTweetService = func(userId string) ([]domain.Tweet, error_utils.MessageErr) {
+			return nil, error_utils.NotFoundError("No results")
+		}
+
+		r := gin.Default()
+		path := fmt.Sprintf("%s/all/%v", basePath, userId)
+		req, _ := http.NewRequest(http.MethodGet, path, nil)
+		rr := httptest.NewRecorder()
+		r.GET("/tweets/all/:userId", GetTweets)
+		r.ServeHTTP(rr, req)
+
+		apiErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+		assert.Nil(t, err)
+		assert.EqualValues(t, apiErr.Status(), rr.Code)
+		assert.EqualValues(t, http.StatusNotFound, apiErr.Status())
+		assert.EqualValues(t, "not_found", apiErr.Error())
+		assert.EqualValues(t, "No results", apiErr.Message())
 	})
 }
