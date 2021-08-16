@@ -98,8 +98,6 @@ func TestTweetService_Create(t *testing.T) {
 		}
 		msg, err := TweetService.Create(request)
 
-		fmt.Println("this is the message: ", err)
-
 		assert.Nil(t, msg)
 		assert.NotNil(t, err)
 		assert.EqualValues(t, http.StatusUnprocessableEntity, err.Status())
@@ -320,8 +318,6 @@ func TestTweetService_Update(t *testing.T) {
 			CreatedAt: tm,
 		}
 		msg, err := TweetService.Update(request)
-
-		fmt.Println("this is the message: ", err)
 
 		assert.Nil(t, msg)
 		assert.NotNil(t, err)
