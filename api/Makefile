@@ -2,7 +2,7 @@ GO=go
 GOCOVER=$(GO) tool cover
 
 run:
-	go run app/main.go
+	go run main.go
 
 test:
 	go test ./...
