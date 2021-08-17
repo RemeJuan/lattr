@@ -16,7 +16,7 @@ var (
 
 var (
 	queryGetTweet         = "SELECT Id, UserId, Message, PostTime, Status, CreatedAt, Modified FROM tweets WHERE id=?;"
-	queryInsertTweet      = "INSERT INTO tweets(UserId, Message, PostTime, Status, CreatedAt) VALUES(?, ?, ?, ?, ?);"
+	queryInsertTweet      = "INSERT INTO tweets(UserId, Message, PostTime, Status, CreatedAt, Modified) VALUES($1, $2, $3, $4, $5, $6) RETURNING ID;"
 	queryUpdateTweet      = "UPDATE tweets SET Message=?, PostTime=? Status=? Modified=? WHERE id=?;"
 	queryGetAllTweets     = "SELECT * FROM tweets WHERE UserId=?;"
 	queryDeleteTweet      = "DELETE FROM tweets WHERE id=?;"
@@ -44,11 +44,10 @@ func InitTweetRepository(db *sql.DB) TweetRepoInterface {
 }
 
 func (tr *tweetRepo) Initialize() *sql.DB {
-	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+	var err error
+	tr.db, err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
 
 	checkError(err)
-
-	defer db.Close()
 
 	fmt.Println("Connected!")
 
@@ -56,6 +55,7 @@ func (tr *tweetRepo) Initialize() *sql.DB {
 }
 
 func (tr *tweetRepo) Create(tweet *Tweet) (*Tweet, error_utils.MessageErr) {
+	var id int64
 	stmt, err := tr.db.Prepare(queryInsertTweet)
 
 	if err != nil {
@@ -64,21 +64,20 @@ func (tr *tweetRepo) Create(tweet *Tweet) (*Tweet, error_utils.MessageErr) {
 	}
 	defer stmt.Close()
 
-	insertResult, createErr := stmt.Exec(tweet.UserId, tweet.Message, tweet.PostTime, Pending, tweet.CreatedAt)
+	insertResult, createErr := stmt.Query(tweet.UserId, tweet.Message, tweet.PostTime, tweet.Status, tweet.CreatedAt, tweet.Modified)
 	if createErr != nil {
 		return nil, error_formats.ParseError(createErr)
 	}
 
-	msgId, inErr := insertResult.LastInsertId()
+	insertResult.Next()
+	inErr := insertResult.Scan(&id)
 
 	if inErr != nil {
 		message := fmt.Sprintf("error when trying to save data: %s", err.Error())
 		return nil, error_utils.InternalServerError(message)
 	}
 
-	tweet.Id = msgId
-	tweet.Status = Pending
-
+	tweet.Id = id
 	return tweet, nil
 }
 

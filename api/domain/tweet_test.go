@@ -15,6 +15,7 @@ func TestTweetRepo_Initialize(t *testing.T) {
 
 func TestTweetRepo_Create(t *testing.T) {
 	var createdAt = time.Now()
+	var modified = time.Now()
 
 	const postTime = "2021-07-12 10:55:50 +0000 UTC"
 	const userId = "001"
@@ -25,7 +26,9 @@ func TestTweetRepo_Create(t *testing.T) {
 		UserId:    userId,
 		Message:   message,
 		PostTime:  postTime,
+		Status:    Pending,
 		CreatedAt: createdAt,
+		Modified:  modified,
 	}
 
 	t.Run("Success", func(t *testing.T) {
@@ -47,11 +50,12 @@ func TestTweetRepo_Create(t *testing.T) {
 			PostTime:  postTime,
 			Status:    Pending,
 			CreatedAt: createdAt,
+			Modified:  modified,
 		}
 
 		sqlQuery := "INSERT INTO tweets"
-		sqlReturn := sqlmock.NewResult(1, 1)
-		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(userId, message, postTime, Pending, createdAt).WillReturnResult(sqlReturn)
+		sqlReturn := sqlmock.NewRows([]string{"Id"}).AddRow(recordId)
+		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(userId, message, postTime, Pending, createdAt, modified).WillReturnRows(sqlReturn)
 
 		request.Message = message
 
@@ -77,7 +81,7 @@ func TestTweetRepo_Create(t *testing.T) {
 
 		sqlQuery := "INSERT INTO tweets"
 		sqlReturn := errors.New("empty title")
-		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(userId, message, postTime, Pending, createdAt).WillReturnError(sqlReturn)
+		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(userId, message, postTime, Pending, createdAt, modified).WillReturnError(sqlReturn)
 
 		request.Message = message
 
