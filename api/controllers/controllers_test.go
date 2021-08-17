@@ -16,11 +16,12 @@ import (
 )
 
 var (
-	createTweetService func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
-	getTweetService    func(msgId int64) (*domain.Tweet, error_utils.MessageErr)
-	updateTweetService func(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
-	deleteTweetService func(msgId int64) error_utils.MessageErr
-	getAllTweetService func(userId string) ([]domain.Tweet, error_utils.MessageErr)
+	createTweetService     func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
+	getTweetService        func(msgId int64) (*domain.Tweet, error_utils.MessageErr)
+	updateTweetService     func(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
+	deleteTweetService     func(msgId int64) error_utils.MessageErr
+	getAllTweetService     func(userId string) ([]domain.Tweet, error_utils.MessageErr)
+	getPendingTweetService func() ([]domain.Tweet, error_utils.MessageErr)
 )
 
 type serviceMock struct {
@@ -44,6 +45,10 @@ func (sm *serviceMock) Update(tweet *domain.Tweet) (*domain.Tweet, error_utils.M
 
 func (sm *serviceMock) Delete(id int64) error_utils.MessageErr {
 	return deleteTweetService(id)
+}
+
+func (sm *serviceMock) GetPending() ([]domain.Tweet, error_utils.MessageErr) {
+	return getPendingTweetService()
 }
 
 const basePath = "/tweets"
