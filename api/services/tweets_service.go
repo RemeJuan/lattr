@@ -19,6 +19,7 @@ type tweetServiceInterface interface {
 	GetAll(string) ([]domain.Tweet, error_utils.MessageErr)
 	Update(*domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
 	Delete(int64) error_utils.MessageErr
+	GetPending() ([]domain.Tweet, error_utils.MessageErr)
 }
 
 func (ts tweetService) Create(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
@@ -82,4 +83,12 @@ func (ts tweetService) Delete(id int64) error_utils.MessageErr {
 		return deleteErr
 	}
 	return nil
+}
+
+func (ts tweetService) GetPending() ([]domain.Tweet, error_utils.MessageErr) {
+	messages, err := domain.TweetRepo.GetPending()
+	if err != nil {
+		return nil, err
+	}
+	return messages, nil
 }

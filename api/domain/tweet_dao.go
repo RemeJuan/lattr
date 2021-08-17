@@ -15,11 +15,12 @@ var (
 )
 
 var (
-	queryGetTweet     = "SELECT Id, UserId, Message, PostTime, Status, CreatedAt, Modified FROM tweets WHERE id=?;"
-	queryInsertTweet  = "INSERT INTO tweets(UserId, Message, PostTime, Status, CreatedAt) VALUES(?, ?, ?, ?, ?);"
-	queryUpdateTweet  = "UPDATE tweets SET Message=?, PostTime=? Status=? Modified=? WHERE id=?;"
-	queryGetAllTweets = "SELECT * FROM tweets WHERE UserId=?;"
-	queryDeleteTweet  = "DELETE FROM tweets WHERE id=?;"
+	queryGetTweet         = "SELECT Id, UserId, Message, PostTime, Status, CreatedAt, Modified FROM tweets WHERE id=?;"
+	queryInsertTweet      = "INSERT INTO tweets(UserId, Message, PostTime, Status, CreatedAt) VALUES(?, ?, ?, ?, ?);"
+	queryUpdateTweet      = "UPDATE tweets SET Message=?, PostTime=? Status=? Modified=? WHERE id=?;"
+	queryGetAllTweets     = "SELECT * FROM tweets WHERE UserId=?;"
+	queryDeleteTweet      = "DELETE FROM tweets WHERE id=?;"
+	queryGetPendingTweets = "SELECT * FROM tweets WHERE Status=Pending"
 )
 
 type TweetRepoInterface interface {
@@ -29,6 +30,7 @@ type TweetRepoInterface interface {
 	GetAll(string) ([]Tweet, error_utils.MessageErr)
 	Update(*Tweet) (*Tweet, error_utils.MessageErr)
 	Delete(int64) error_utils.MessageErr
+	GetPending() ([]Tweet, error_utils.MessageErr)
 }
 
 type tweetRepo struct {
@@ -157,6 +159,36 @@ func (tr *tweetRepo) Delete(id int64) error_utils.MessageErr {
 		return error_utils.InternalServerError(fmt.Sprintf("error when trying to delete record %s", err.Error()))
 	}
 	return nil
+}
+
+func (tr *tweetRepo) GetPending() ([]Tweet, error_utils.MessageErr) {
+	stmt, err := tr.db.Prepare(queryGetPendingTweets)
+
+	if err != nil {
+		return nil, error_utils.InternalServerError(fmt.Sprintf("Error when trying to prepare pending entries: %s", err.Error()))
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, error_formats.ParseError(err)
+	}
+	defer rows.Close()
+
+	results := make([]Tweet, 0)
+
+	for rows.Next() {
+		var tweet Tweet
+		if getError := rows.Scan(&tweet.Id, &tweet.UserId, &tweet.Message, &tweet.PostTime, &tweet.Status, &tweet.CreatedAt, &tweet.Modified); getError != nil {
+			message := fmt.Sprintf("Error when trying to get message: %s", getError.Error())
+			return nil, error_utils.InternalServerError(message)
+		}
+		results = append(results, tweet)
+	}
+	if len(results) == 0 {
+		return nil, error_utils.NotFoundError("no records found")
+	}
+	return results, nil
 }
 
 func checkError(err error) {

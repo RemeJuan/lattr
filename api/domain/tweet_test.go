@@ -561,3 +561,146 @@ func TestTweetRepo_Delete(t *testing.T) {
 		assert.Equal(t, expected, delErr.Message())
 	})
 }
+
+func TestTweetRepo_GetPending(t *testing.T) {
+	var modified = time.Now()
+	var createdAt = time.Now()
+
+	const postTime = "2021-07-12 10:55:50 +0000 UTC"
+	const recordId int64 = 001
+	const status = Posted
+	const userId = "001"
+	var message = "message"
+
+	t.Run("Success", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTweetRepository(db)
+
+		expected := []Tweet{
+			{
+				Id:        recordId,
+				UserId:    userId,
+				Message:   message,
+				PostTime:  postTime,
+				Status:    status,
+				CreatedAt: createdAt,
+				Modified:  modified,
+			},
+			{
+				Id:        002,
+				UserId:    userId,
+				Message:   message,
+				PostTime:  postTime,
+				Status:    status,
+				CreatedAt: createdAt,
+				Modified:  modified,
+			},
+		}
+
+		rows := sqlmock.NewRows([]string{"Id", "UserId", "Message", "PostTime", "Status", "CreatedAt", "Modified"}).AddRow(recordId, userId, message, postTime, status, createdAt, modified).AddRow(002, userId, message, postTime, status, createdAt, modified)
+
+		const sqlQuery = "SELECT (.+) FROM tweets"
+		mock.ExpectPrepare(sqlQuery).ExpectQuery().WillReturnRows(rows)
+
+		got, gaErr := s.GetPending()
+
+		assert.Nil(t, gaErr)
+		assert.Equal(t, expected, got)
+	})
+
+	t.Run("Invalid SQL Syntax", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTweetRepository(db)
+
+		const expected = "Error when trying to prepare pending entries: invalid syntax"
+
+		const sqlQuery = "SELECT (.+) FROM tweets"
+		sqlResult := errors.New("invalid syntax")
+		mock.ExpectPrepare(sqlQuery).WillReturnError(sqlResult)
+
+		got, gaErr := s.GetPending()
+
+		assert.Nil(t, got)
+		assert.Equal(t, expected, gaErr.Message())
+	})
+
+	t.Run("Invalid Query", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTweetRepository(db)
+
+		const expected = "error when trying to save data: invalid query"
+
+		const sqlQuery = "SELECT (.+) FROM tweets"
+		sqlResult := errors.New("invalid query")
+		mock.ExpectPrepare(sqlQuery).ExpectQuery().WillReturnError(sqlResult)
+
+		got, gaErr := s.GetPending()
+
+		assert.Nil(t, got)
+		assert.Equal(t, expected, gaErr.Message())
+	})
+
+	t.Run("Invalid response.incorrect row", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTweetRepository(db)
+
+		expected := "Error when trying to get message: sql: Scan error on column index 5, name \"CreatedAt\": unsupported Scan, storing driver.Value type string into type *time.Time"
+
+		rows := sqlmock.NewRows([]string{"Id", "UserId", "Message", "PostTime", "Status", "CreatedAt", "Modified"}).AddRow(recordId, userId, message, postTime, status, createdAt, modified).AddRow(002, userId, message, postTime, status, "createdAt", modified)
+
+		const sqlQuery = "SELECT (.+) FROM tweets"
+		mock.ExpectPrepare(sqlQuery).ExpectQuery().WillReturnRows(rows)
+
+		got, gaErr := s.GetPending()
+
+		assert.Nil(t, got)
+		assert.Equal(t, expected, gaErr.Message())
+	})
+
+	t.Run("No results", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTweetRepository(db)
+
+		const expected = "no records found"
+
+		rows := sqlmock.NewRows([]string{"Id", "UserId", "Message", "PostTime", "Status", "CreatedAt", "Modified"})
+
+		const sqlQuery = "SELECT (.+) FROM tweets"
+		mock.ExpectPrepare(sqlQuery).ExpectQuery().WillReturnRows(rows)
+
+		got, gaErr := s.GetPending()
+
+		assert.Nil(t, got)
+		assert.Equal(t, expected, gaErr.Message())
+	})
+}

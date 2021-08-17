@@ -13,12 +13,13 @@ import (
 )
 
 var (
-	tm                 = time.Now()
-	createTweetDomain  func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
-	getTweetDomain     func(messageId int64) (*domain.Tweet, error_utils.MessageErr)
-	updateTweetDomain  func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
-	deleteTweetDomain  func(messageId int64) error_utils.MessageErr
-	getAllTweetsDomain func(userId string) ([]domain.Tweet, error_utils.MessageErr)
+	tm                     = time.Now()
+	createTweetDomain      func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
+	getTweetDomain         func(messageId int64) (*domain.Tweet, error_utils.MessageErr)
+	updateTweetDomain      func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
+	deleteTweetDomain      func(messageId int64) error_utils.MessageErr
+	getAllTweetsDomain     func(userId string) ([]domain.Tweet, error_utils.MessageErr)
+	getPendingTweetsDomain func() ([]domain.Tweet, error_utils.MessageErr)
 )
 
 type getDBMock struct {
@@ -39,6 +40,9 @@ func (m *getDBMock) Update(msg *domain.Tweet) (*domain.Tweet, error_utils.Messag
 }
 func (m *getDBMock) Delete(messageId int64) error_utils.MessageErr {
 	return deleteTweetDomain(messageId)
+}
+func (m *getDBMock) GetPending() ([]domain.Tweet, error_utils.MessageErr) {
+	return getPendingTweetsDomain()
 }
 func (m *getDBMock) Initialize() *sql.DB {
 	return nil
@@ -427,5 +431,69 @@ func TestTweetService_Delete(t *testing.T) {
 		assert.EqualValues(t, "error deleting message", err.Message())
 		assert.EqualValues(t, http.StatusInternalServerError, err.Status())
 		assert.EqualValues(t, "server_error", err.Error())
+	})
+}
+
+func TestTweetService_GetPending(t *testing.T) {
+	const userId = "001"
+	const postTime = "2021-07-12 10:55:50 +0000 UTC"
+	var message = ""
+
+	t.Run("Success", func(t *testing.T) {
+		domain.TweetRepo = &getDBMock{}
+
+		message = "the message"
+
+		getPendingTweetsDomain = func() ([]domain.Tweet, error_utils.MessageErr) {
+			return []domain.Tweet{
+				{
+					Id:        01,
+					Message:   message,
+					PostTime:  postTime,
+					CreatedAt: tm,
+					UserId:    userId,
+				},
+				{
+					Id:        02,
+					Message:   message,
+					PostTime:  postTime,
+					CreatedAt: tm,
+					UserId:    userId,
+				},
+			}, nil
+		}
+
+		tweets, err := TweetService.GetPending()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, tweets)
+
+		// First Result
+		assert.EqualValues(t, 01, tweets[0].Id)
+		assert.EqualValues(t, userId, tweets[0].UserId)
+		assert.EqualValues(t, message, tweets[0].Message)
+		assert.EqualValues(t, postTime, tweets[0].PostTime)
+
+		// Second Result
+		assert.EqualValues(t, 02, tweets[1].Id)
+		assert.EqualValues(t, userId, tweets[1].UserId)
+		assert.EqualValues(t, message, tweets[1].Message)
+		assert.EqualValues(t, postTime, tweets[1].PostTime)
+	})
+
+	t.Run("Not Found", func(t *testing.T) {
+		domain.TweetRepo = &getDBMock{}
+
+		getPendingTweetsDomain = func() ([]domain.Tweet, error_utils.MessageErr) {
+			return nil, error_utils.NotFoundError("error getting messages")
+		}
+
+		msg, err := TweetService.GetPending()
+
+		assert.Nil(t, msg)
+		assert.NotNil(t, err)
+		assert.EqualValues(t, http.StatusNotFound, err.Status())
+		assert.EqualValues(t, "error getting messages", err.Message())
+		assert.EqualValues(t, "not_found", err.Error())
 	})
 }
