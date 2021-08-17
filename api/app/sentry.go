@@ -1,4 +1,4 @@
-package sentry_setup
+package app
 
 import (
 	"log"
