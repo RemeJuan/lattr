@@ -28,13 +28,15 @@ func (ts tweetService) Create(tweet *domain.Tweet) (*domain.Tweet, error_utils.M
 	}
 
 	tweet.CreatedAt = time.Now()
-	tweet, err := domain.TweetRepo.Create(tweet)
+	tweet.Modified = time.Now()
+	tweet.Status = domain.Pending
 
+	tw, err := domain.TweetRepo.Create(tweet)
 	if err != nil {
 		return nil, err
 	}
 
-	return tweet, nil
+	return tw, nil
 }
 
 func (ts tweetService) Get(id int64) (*domain.Tweet, error_utils.MessageErr) {
