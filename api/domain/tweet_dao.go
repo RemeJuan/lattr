@@ -7,6 +7,7 @@ import (
 
 	"github.com/RemeJuan/lattr/utils/error_formats"
 	"github.com/RemeJuan/lattr/utils/error_utils"
+	_ "github.com/lib/pq"
 )
 
 var (
