@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"testing"
+	"time"
 
 	"github.com/RemeJuan/lattr/domain"
 	"github.com/stretchr/testify/assert"
@@ -9,18 +10,12 @@ import (
 
 func TestShouldPost(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
+		p, _ := time.Parse("2021-07-18 12:55:50 +0200 SAST", "2021-07-18 12:55:50 +0200 SAST")
+
 		tweet := &domain.Tweet{
-			PostTime: "2021-07-18 12:55:50 +0200",
+			PostTime: p,
 		}
 
 		assert.Equal(t, true, ShouldPost(*tweet))
-	})
-
-	t.Run("Error", func(t *testing.T) {
-		tweet := &domain.Tweet{
-			PostTime: "2021-07-18 12:55:50 +0200 SAST",
-		}
-
-		assert.Equal(t, false, ShouldPost(*tweet))
 	})
 }
