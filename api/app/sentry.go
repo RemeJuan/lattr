@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -13,5 +14,7 @@ func Init() {
 	})
 	if err != nil {
 		log.Fatalf("sentry.Init: %s", err)
+	} else {
+		fmt.Printf("Sentry Initialized")
 	}
 }
