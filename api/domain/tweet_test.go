@@ -17,10 +17,10 @@ func TestTweetRepo_Create(t *testing.T) {
 	var createdAt = time.Now()
 	var modified = time.Now()
 
-	const postTime = "2021-07-12 10:55:50 +0000 UTC"
 	const userId = "001"
 	const recordId int64 = 1
 	var message = ""
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
 
 	request := &Tweet{
 		UserId:    userId,
@@ -142,10 +142,10 @@ func TestTweetRepo_Get(t *testing.T) {
 	var createdAt = time.Now()
 	var modified = time.Now()
 
-	const postTime = "2021-07-12 10:55:50 +0000 UTC"
 	const userId = "001"
 	const recordId int64 = 001
 	var message = "message"
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		db, mock, err := sqlmock.New()
@@ -227,10 +227,10 @@ func TestTweetRepo_Get(t *testing.T) {
 func TestTweetRepo_Update(t *testing.T) {
 	var modified = time.Now()
 
-	const postTime = "2021-07-12 10:55:50 +0000 UTC"
 	const recordId int64 = 001
 	const status = Posted
 	var message = "message"
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
 
 	request := &Tweet{
 		Id:       recordId,
@@ -361,11 +361,11 @@ func TestTweetRepo_GetAll(t *testing.T) {
 	var modified = time.Now()
 	var createdAt = time.Now()
 
-	const postTime = "2021-07-12 10:55:50 +0000 UTC"
 	const recordId int64 = 001
 	const status = Posted
 	const userId = "001"
 	var message = "message"
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
 
 	request := userId
 
@@ -570,11 +570,11 @@ func TestTweetRepo_GetPending(t *testing.T) {
 	var modified = time.Now()
 	var createdAt = time.Now()
 
-	const postTime = "2021-07-12 10:55:50 +0000 UTC"
 	const recordId int64 = 001
 	const status = Posted
 	const userId = "001"
 	var message = "message"
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		db, mock, err := sqlmock.New()

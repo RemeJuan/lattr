@@ -2,7 +2,6 @@ package services
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -50,7 +49,7 @@ func (m *getDBMock) Initialize() *sql.DB {
 
 func TestTweetService_Create(t *testing.T) {
 	const recordId int64 = 1
-	const postTime = "2021-07-12 10:55:50 +0000"
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		domain.TweetRepo = &getDBMock{}
@@ -108,41 +107,11 @@ func TestTweetService_Create(t *testing.T) {
 		assert.EqualValues(t, "invalid_request", err.Error())
 		assert.EqualValues(t, "Body cannot be empty", err.Message())
 	})
-
-	t.Run("Invalid timestamp", func(t *testing.T) {
-		domain.TweetRepo = &getDBMock{}
-
-		const message = "the message"
-
-		createTweetDomain = func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
-			return &domain.Tweet{
-				Id:        recordId,
-				Message:   message,
-				PostTime:  "2021-07-12 10:55:50 +0000 UTC",
-				CreatedAt: tm,
-			}, nil
-		}
-
-		request := &domain.Tweet{
-			Message:   message,
-			PostTime:  "2021-07-12 10:55:50 +0000 UTC",
-			CreatedAt: tm,
-		}
-		msg, err := TweetService.Create(request)
-
-		fmt.Println("this is the message: ", msg)
-
-		assert.Nil(t, msg)
-		assert.NotNil(t, err)
-		assert.EqualValues(t, http.StatusUnprocessableEntity, err.Status())
-		assert.EqualValues(t, "invalid_request", err.Error())
-		assert.EqualValues(t, `Invalid date/time format, please use "CCYY-MM-DD HH:mm:ss -zzzz`, err.Message())
-	})
 }
 
 func TestTweetService_Get(t *testing.T) {
 	const recordId int64 = 1
-	const postTime = "2021-07-12 10:55:50 +0000 UTC"
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
 	var message = ""
 
 	t.Run("Success", func(t *testing.T) {
@@ -187,7 +156,7 @@ func TestTweetService_Get(t *testing.T) {
 
 func TestTweetService_GetAll(t *testing.T) {
 	const userId = "001"
-	const postTime = "2021-07-12 10:55:50 +0000 UTC"
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
 	var message = ""
 
 	t.Run("Success", func(t *testing.T) {
@@ -251,8 +220,8 @@ func TestTweetService_GetAll(t *testing.T) {
 
 func TestTweetService_Update(t *testing.T) {
 	const recordId int64 = 1
-	const postTime = "2021-07-12 10:55:50 +0000"
-	const updatedTime = "2021-07-13 10:55:50 +0000"
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
+	updatedTime, _ := time.Parse("2021-07-13 10:55:50 +0000", "2021-07-13 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		domain.TweetRepo = &getDBMock{}
@@ -329,50 +298,11 @@ func TestTweetService_Update(t *testing.T) {
 		assert.EqualValues(t, "invalid_request", err.Error())
 		assert.EqualValues(t, "Body cannot be empty", err.Message())
 	})
-
-	t.Run("Invalid timestamp", func(t *testing.T) {
-		domain.TweetRepo = &getDBMock{}
-
-		const message = "the message"
-
-		getTweetDomain = func(messageId int64) (*domain.Tweet, error_utils.MessageErr) {
-			return &domain.Tweet{
-				Id:        recordId,
-				Message:   message,
-				PostTime:  postTime,
-				CreatedAt: tm,
-			}, nil
-		}
-
-		updateTweetDomain = func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
-			return &domain.Tweet{
-				Id:        recordId,
-				Message:   message,
-				PostTime:  "2021-07-12 10:55:50 +0000 UTC",
-				CreatedAt: tm,
-			}, nil
-		}
-
-		request := &domain.Tweet{
-			Message:   message,
-			PostTime:  "2021-07-12 10:55:50 +0000 UTC",
-			CreatedAt: tm,
-		}
-		msg, err := TweetService.Update(request)
-
-		fmt.Println("this is the message: ", msg)
-
-		assert.Nil(t, msg)
-		assert.NotNil(t, err)
-		assert.EqualValues(t, http.StatusUnprocessableEntity, err.Status())
-		assert.EqualValues(t, "invalid_request", err.Error())
-		assert.EqualValues(t, `Invalid date/time format, please use "CCYY-MM-DD HH:mm:ss -zzzz`, err.Message())
-	})
 }
 
 func TestTweetService_Delete(t *testing.T) {
 	const recordId int64 = 1
-	const postTime = "2021-07-12 10:55:50 +0000 UTC"
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
 	var message = ""
 
 	t.Run("Success", func(t *testing.T) {
@@ -436,7 +366,7 @@ func TestTweetService_Delete(t *testing.T) {
 
 func TestTweetService_GetPending(t *testing.T) {
 	const userId = "001"
-	const postTime = "2021-07-12 10:55:50 +0000 UTC"
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
 	var message = ""
 
 	t.Run("Success", func(t *testing.T) {

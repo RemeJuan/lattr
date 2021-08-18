@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/RemeJuan/lattr/domain"
 	"github.com/RemeJuan/lattr/services"
@@ -57,7 +58,7 @@ func TestCreateTweet(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	const recordId int64 = 1
-	const postTime = "2021-07-12 10:55:50 +0000"
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		services.TweetService = &serviceMock{}
@@ -138,7 +139,7 @@ func TestGetTweet(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	const recordId int64 = 1
-	const postTime = "2021-07-12 10:55:50 +0000"
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		services.TweetService = &serviceMock{}
@@ -218,7 +219,7 @@ func TestGetTweets(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	const recordId int64 = 1
-	const postTime = "2021-07-12 10:55:50 +0000"
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		services.TweetService = &serviceMock{}
@@ -297,7 +298,7 @@ func TestUpdateTweet(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	const recordId int64 = 1
-	const postTime = "2021-07-12 10:55:50 +0000"
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		services.TweetService = &serviceMock{}
