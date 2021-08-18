@@ -1,4 +1,4 @@
-package twitter_client
+package twitter
 
 import (
 	"log"
