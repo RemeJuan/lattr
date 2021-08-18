@@ -27,9 +27,13 @@ func (ts tweetService) Create(tweet *domain.Tweet) (*domain.Tweet, error_utils.M
 		return nil, err
 	}
 
+	layout := "2006-01-02 15:04:05 -0700"
+	t, _ := time.Parse(layout, tweet.PostTime)
+
 	tweet.CreatedAt = time.Now()
 	tweet.Modified = time.Now()
 	tweet.Status = domain.Pending
+	tweet.PostTime = t.UTC().String()
 
 	tw, err := domain.TweetRepo.Create(tweet)
 	if err != nil {
