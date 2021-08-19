@@ -28,7 +28,7 @@ func getTweets() {
 	tweets, err := domain.TweetRepo.GetPending()
 
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Scheduler:", err)
 		return
 	}
 
@@ -39,12 +39,6 @@ func getTweets() {
 
 func ShouldPost(tweet domain.Tweet) bool {
 	now := time.Now().UTC()
-	layout := "2006-01-02 15:04:05 -0700"
-	incoming, tErr := time.Parse(layout, tweet.PostTime)
 
-	if tErr != nil {
-		return false
-	}
-
-	return now.After(incoming.UTC())
+	return now.After(tweet.PostTime.UTC())
 }
