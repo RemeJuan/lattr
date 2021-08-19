@@ -19,6 +19,7 @@ var (
 	deleteTweetDomain      func(messageId int64) error_utils.MessageErr
 	getAllTweetsDomain     func(userId string) ([]domain.Tweet, error_utils.MessageErr)
 	getPendingTweetsDomain func() ([]domain.Tweet, error_utils.MessageErr)
+	getLastTweetsDomain    func() (*domain.Tweet, error_utils.MessageErr)
 )
 
 type getDBMock struct {
@@ -42,6 +43,9 @@ func (m *getDBMock) Delete(messageId int64) error_utils.MessageErr {
 }
 func (m *getDBMock) GetPending() ([]domain.Tweet, error_utils.MessageErr) {
 	return getPendingTweetsDomain()
+}
+func (m *getDBMock) GetLast() (*domain.Tweet, error_utils.MessageErr) {
+	return getLastTweetsDomain()
 }
 func (m *getDBMock) Initialize() *sql.DB {
 	return nil
@@ -419,6 +423,44 @@ func TestTweetService_GetPending(t *testing.T) {
 		}
 
 		msg, err := TweetService.GetPending()
+
+		assert.Nil(t, msg)
+		assert.NotNil(t, err)
+		assert.EqualValues(t, http.StatusNotFound, err.Status())
+		assert.EqualValues(t, "error getting messages", err.Message())
+		assert.EqualValues(t, "not_found", err.Error())
+	})
+}
+
+func TestTweetService_GetLast(t *testing.T) {
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
+
+	t.Run("Success", func(t *testing.T) {
+		domain.TweetRepo = &getDBMock{}
+
+		getLastTweetsDomain = func() (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
+				PostTime: postTime,
+			}, nil
+		}
+
+		tweet, err := TweetService.GetLast()
+
+		assert.Nil(t, err)
+		assert.NotNil(t, tweet)
+
+		// First Result
+		assert.EqualValues(t, postTime, tweet.PostTime)
+	})
+
+	t.Run("Not Found", func(t *testing.T) {
+		domain.TweetRepo = &getDBMock{}
+
+		getLastTweetsDomain = func() (*domain.Tweet, error_utils.MessageErr) {
+			return nil, error_utils.NotFoundError("error getting messages")
+		}
+
+		msg, err := TweetService.GetLast()
 
 		assert.Nil(t, msg)
 		assert.NotNil(t, err)

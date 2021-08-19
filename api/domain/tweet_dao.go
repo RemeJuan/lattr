@@ -20,7 +20,8 @@ var (
 	queryUpdateTweet      = "UPDATE tweets SET Message=$1, PostTime=$2 Status=$3 Modified=$4 WHERE id=$5;"
 	queryGetAllTweets     = "SELECT * FROM tweets WHERE UserId=$1;"
 	queryDeleteTweet      = "DELETE FROM tweets WHERE id=$1;"
-	queryGetPendingTweets = "SELECT * FROM tweets WHERE Status='Pending' LIMIT 1"
+	queryGetPendingTweets = "SELECT * FROM tweets WHERE Status='Pending' AND PostTime <= now() order by PostTime asc LIMIT 1"
+	queryGetLastTweet     = "SELECT PostTime FROM tweets ORDER by PostTime asc LIMIT 1"
 )
 
 type TweetRepoInterface interface {
@@ -31,6 +32,7 @@ type TweetRepoInterface interface {
 	Update(*Tweet) (*Tweet, error_utils.MessageErr)
 	Delete(int64) error_utils.MessageErr
 	GetPending() ([]Tweet, error_utils.MessageErr)
+	GetLast() (*Tweet, error_utils.MessageErr)
 }
 
 type tweetRepo struct {
@@ -188,6 +190,26 @@ func (tr *tweetRepo) GetPending() ([]Tweet, error_utils.MessageErr) {
 		return nil, error_utils.NotFoundError("no records found")
 	}
 	return results, nil
+}
+
+func (tr *tweetRepo) GetLast() (*Tweet, error_utils.MessageErr) {
+	stmt, err := tr.db.Prepare(queryGetLastTweet)
+
+	if err != nil {
+		message := fmt.Sprintf("Error retrieving record: %s", err)
+		return nil, error_utils.InternalServerError(message)
+	}
+
+	defer stmt.Close()
+
+	var tweet Tweet
+	result := stmt.QueryRow()
+
+	if getError := result.Scan(&tweet.PostTime); getError != nil {
+		return nil, error_formats.ParseError(getError)
+	}
+
+	return &tweet, nil
 }
 
 func checkError(err error) {

@@ -708,3 +708,77 @@ func TestTweetRepo_GetPending(t *testing.T) {
 		assert.Equal(t, expected, gaErr.Message())
 	})
 }
+
+func TestTweetRepo_GetLast(t *testing.T) {
+	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
+
+	t.Run("Success", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTweetRepository(db)
+
+		rows := sqlmock.NewRows([]string{"PostTime"}).AddRow(postTime)
+
+		expected := &Tweet{
+			PostTime: postTime,
+		}
+
+		const sqlQuery = "SELECT (.+) FROM tweets"
+		mock.ExpectPrepare(sqlQuery).ExpectQuery().WillReturnRows(rows)
+
+		got, getErr := s.GetLast()
+
+		assert.Nil(t, getErr)
+		assert.Equal(t, expected, got)
+	})
+
+	t.Run("Not Found", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTweetRepository(db)
+
+		const expected = "no record matching given id"
+
+		rows := sqlmock.NewRows([]string{"PostTime"})
+
+		const sqlQuery = "SELECT (.+) FROM tweets"
+		mock.ExpectPrepare(sqlQuery).ExpectQuery().WillReturnRows(rows)
+
+		got, gotErr := s.GetLast()
+
+		assert.Nil(t, got)
+		assert.Equal(t, expected, gotErr.Message())
+	})
+
+	t.Run("Invalid Prepare", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTweetRepository(db)
+
+		const expected = "Error retrieving record: invalid sql query"
+
+		const sqlQuery = "SELECT (.+) FROM tweets"
+		sqlReturn := errors.New("invalid sql query")
+		mock.ExpectPrepare(sqlQuery).WillReturnError(sqlReturn)
+
+		got, gotErr := s.GetLast()
+
+		assert.Nil(t, got)
+		assert.Equal(t, expected, gotErr.Message())
+	})
+}
