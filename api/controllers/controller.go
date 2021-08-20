@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -99,6 +100,30 @@ func DeleteTweet(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, map[string]string{"status": "deleted"})
+}
+
+func WebHook(c *gin.Context) {
+	var tweet domain.Tweet
+
+	if err := c.ShouldBindJSON(&tweet); err != nil {
+		theErr := error_utils.UnprocessableEntityError("invalid json body")
+		c.JSON(theErr.Status(), theErr)
+		return
+	}
+
+	last, lErr := services.TweetService.GetLast()
+	fmt.Println(last)
+	if lErr != nil {
+		c.JSON(lErr.Status(), lErr)
+		return
+	}
+
+	msg, err := services.TweetService.Create(&tweet)
+	if err != nil {
+		c.JSON(err.Status(), err)
+		return
+	}
+	c.JSON(http.StatusCreated, msg)
 }
 
 func GetParam(c *gin.Context, paramName string) string {
