@@ -10,9 +10,9 @@ import (
 type tweetStatus string
 
 const (
-	Pending = tweetStatus("Pending")
-	Posted  = tweetStatus("Posted")
-	Failed  = tweetStatus("Failed")
+	Pending   = tweetStatus("Pending")
+	Posted    = tweetStatus("Posted")
+	Scheduled = tweetStatus("Scheduled")
 )
 
 type Tweet struct {
