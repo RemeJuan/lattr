@@ -21,7 +21,7 @@ var (
 	queryGetAllTweets     = "SELECT * FROM tweets WHERE UserId=$1;"
 	queryDeleteTweet      = "DELETE FROM tweets WHERE id=$1;"
 	queryGetPendingTweets = "SELECT * FROM tweets WHERE Status='Pending' AND PostTime <= now() order by PostTime asc LIMIT 1"
-	queryGetLastTweet     = "SELECT PostTime FROM tweets ORDER by PostTime asc LIMIT 1"
+	queryGetLastTweet     = "SELECT PostTime FROM tweets WHERE Status='Scheduled' ORDER by PostTime asc LIMIT 1"
 )
 
 type TweetRepoInterface interface {
