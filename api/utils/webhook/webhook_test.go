@@ -25,17 +25,125 @@ func TestFixedScheduler(t *testing.T) {
 			PostTime: time.Date(2021, 8, 20, 14, 30, 0, 0, time.UTC),
 		}
 
+		expected := time.Date(2021, 8, 20, 15, 31, 0, 0, time.UTC)
 		result := FixedScheduler(tweet.PostTime)
 
-		fmt.Println(result)
-	})
-
-	t.Run("Returns first time slot", func(t *testing.T) {
-
+		assert.Equal(t, expected, result)
 	})
 
 	t.Run("Returns next days date", func(t *testing.T) {
+		tweet := &domain.Tweet{
+			PostTime: time.Date(2021, 8, 20, 15, 31, 0, 0, time.UTC),
+		}
 
+		expected := time.Date(2021, 8, 21, 14, 30, 0, 0, time.UTC)
+
+		result := FixedScheduler(tweet.PostTime)
+
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("Last day of month", func(t *testing.T) {
+		tweet := &domain.Tweet{
+			PostTime: time.Date(2021, 8, 31, 15, 31, 0, 0, time.UTC),
+		}
+
+		expected := time.Date(2021, 9, 01, 14, 30, 0, 0, time.UTC)
+
+		result := FixedScheduler(tweet.PostTime)
+
+		assert.Equal(t, expected, result)
+	})
+}
+
+func TestRandomMinuteScheduler(t *testing.T) {
+	seedVal = 1
+	schedules := []string{"14", "15"}
+	err := os.Setenv("SCHEDULES", strings.Join(schedules, ","))
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	t.Run("Returns next time slot", func(t *testing.T) {
+		tweet := &domain.Tweet{
+			PostTime: time.Date(2021, 8, 20, 14, 30, 0, 0, time.UTC),
+		}
+
+		expected := time.Date(2021, 8, 20, 15, 55, 0, 0, time.UTC)
+
+		result := RandomMinuteScheduler(tweet.PostTime)
+
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("Returns next days date", func(t *testing.T) {
+		tweet := &domain.Tweet{
+			PostTime: time.Date(2021, 8, 20, 15, 30, 0, 0, time.UTC),
+		}
+
+		expected := time.Date(2021, 8, 21, 14, 55, 0, 0, time.UTC)
+
+		result := RandomMinuteScheduler(tweet.PostTime)
+
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("Last day of month", func(t *testing.T) {
+		tweet := &domain.Tweet{
+			PostTime: time.Date(2021, 8, 31, 15, 30, 0, 0, time.UTC),
+		}
+
+		expected := time.Date(2021, 9, 01, 14, 55, 0, 0, time.UTC)
+
+		result := RandomMinuteScheduler(tweet.PostTime)
+
+		assert.Equal(t, expected, result)
+	})
+}
+
+func TestIntervalScheduler(t *testing.T) {
+	err := os.Setenv("INTERVALS", "2")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	t.Run("Success", func(t *testing.T) {
+		tweet := &domain.Tweet{
+			PostTime: time.Date(2021, 8, 20, 14, 30, 0, 0, time.UTC),
+		}
+
+		expected := time.Date(2021, 8, 20, 16, 30, 0, 0, time.UTC)
+
+		result := IntervalScheduler(tweet.PostTime)
+
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("Returns next day", func(t *testing.T) {
+		tweet := &domain.Tweet{
+			PostTime: time.Date(2021, 8, 20, 23, 30, 0, 0, time.UTC),
+		}
+
+		expected := time.Date(2021, 8, 21, 01, 30, 0, 0, time.UTC)
+
+		result := IntervalScheduler(tweet.PostTime)
+
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("Last day of month", func(t *testing.T) {
+		tweet := &domain.Tweet{
+			PostTime: time.Date(2021, 8, 31, 23, 30, 0, 0, time.UTC),
+		}
+
+		expected := time.Date(2021, 9, 01, 01, 30, 0, 0, time.UTC)
+
+		result := IntervalScheduler(tweet.PostTime)
+
+		assert.Equal(t, expected, result)
 	})
 }
 
