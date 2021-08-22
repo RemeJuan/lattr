@@ -23,6 +23,7 @@ var (
 	deleteTweetService     func(msgId int64) error_utils.MessageErr
 	getAllTweetService     func(userId string) ([]domain.Tweet, error_utils.MessageErr)
 	getPendingTweetService func() ([]domain.Tweet, error_utils.MessageErr)
+	getLastTweet           func() (*domain.Tweet, error_utils.MessageErr)
 )
 
 type serviceMock struct {
@@ -52,13 +53,18 @@ func (sm *serviceMock) GetPending() ([]domain.Tweet, error_utils.MessageErr) {
 	return getPendingTweetService()
 }
 
+func (sm *serviceMock) GetLast() (*domain.Tweet, error_utils.MessageErr) {
+	return getLastTweet()
+}
+
 const basePath = "/tweets"
+const layout = "2021-07-12 10:55:50 +0000"
 
 func TestCreateTweet(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	const recordId int64 = 1
-	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		services.TweetService = &serviceMock{}
@@ -139,7 +145,7 @@ func TestGetTweet(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	const recordId int64 = 1
-	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		services.TweetService = &serviceMock{}
@@ -219,7 +225,7 @@ func TestGetTweets(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	const recordId int64 = 1
-	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		services.TweetService = &serviceMock{}
@@ -298,7 +304,7 @@ func TestUpdateTweet(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	const recordId int64 = 1
-	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		services.TweetService = &serviceMock{}
