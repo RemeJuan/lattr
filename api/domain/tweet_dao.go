@@ -17,7 +17,7 @@ var (
 var (
 	queryGetTweet              = "SELECT Id, UserId, Message, PostTime, Status, CreatedAt, Modified FROM tweets WHERE id=$1;"
 	queryInsertTweet           = "INSERT INTO tweets(UserId, Message, PostTime, Status, CreatedAt, Modified) VALUES($1, $2, $3, $4, $5, $6) RETURNING ID;"
-	queryUpdateTweet           = "UPDATE tweets SET Message=$1, PostTime=$2 Status=$3 Modified=$4 WHERE id=$5;"
+	queryUpdateTweet           = "UPDATE tweets SET Message=$1, PostTime=$2, Status=$3, Modified=$4 WHERE id=$5;"
 	queryGetAllTweets          = "SELECT * FROM tweets WHERE UserId=$1;"
 	queryDeleteTweet           = "DELETE FROM tweets WHERE id=$1;"
 	queryGetPendingTweets      = "SELECT * FROM tweets WHERE Status != 'Posted' AND PostTime <= now() order by PostTime asc LIMIT 1"
