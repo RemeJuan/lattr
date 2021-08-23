@@ -48,11 +48,11 @@ func RandomMinuteScheduler(inTime time.Time) time.Time {
 
 	if hasNextSlot {
 		hour, _ := strconv.ParseInt(schedules[idx+1], 10, 64)
-		return time.Date(inTime.Year(), inTime.Month(), inTime.Day(), int(hour), min, inTime.Second(), inTime.Nanosecond(), inTime.Location())
+		return time.Date(inTime.Year(), inTime.Month(), inTime.Day(), int(hour), min, 0, 0, inTime.Location())
 	} else {
 		d := inTime.Day() + 1
 		hour, _ := strconv.ParseInt(schedules[0], 10, 64)
-		return time.Date(inTime.Year(), inTime.Month(), d, int(hour), min, inTime.Second(), inTime.Nanosecond(), inTime.Location())
+		return time.Date(inTime.Year(), inTime.Month(), d, int(hour), min, 0, 0, inTime.Location())
 	}
 }
 
@@ -66,12 +66,12 @@ func FixedScheduler(inTime time.Time) time.Time {
 	if hasNextSlot {
 		hour, min := splitTimeString(schedules[idx+1])
 
-		return time.Date(inTime.Year(), inTime.Month(), inTime.Day(), hour, min, inTime.Second(), inTime.Nanosecond(), inTime.Location())
+		return time.Date(inTime.Year(), inTime.Month(), inTime.Day(), hour, min, 0, 0, inTime.Location())
 	} else {
 		d := inTime.Day() + 1
 		hour, min := splitTimeString(schedules[0])
 
-		return time.Date(inTime.Year(), inTime.Month(), d, hour, min, inTime.Second(), inTime.Nanosecond(), inTime.Location())
+		return time.Date(inTime.Year(), inTime.Month(), d, hour, min, 0, 0, inTime.Location())
 	}
 }
 
