@@ -47,11 +47,11 @@ func RandomMinuteScheduler(inTime time.Time) time.Time {
 	min := randomMinute(seedVal)
 
 	if hasNextSlot {
-		hour, _ := strconv.ParseInt(schedules[idx+1], 10, 64)
+		hour, _ := strconv.ParseInt(schedules[idx+1], 10, 32)
 		return time.Date(inTime.Year(), inTime.Month(), inTime.Day(), int(hour), min, 0, 0, inTime.Location())
 	} else {
 		d := inTime.Day() + 1
-		hour, _ := strconv.ParseInt(schedules[0], 10, 64)
+		hour, _ := strconv.ParseInt(schedules[0], 10, 32)
 		return time.Date(inTime.Year(), inTime.Month(), d, int(hour), min, 0, 0, inTime.Location())
 	}
 }
@@ -96,7 +96,7 @@ func GetSchedules() []string {
 func GetInterval() int64 {
 	intervals := os.Getenv("INTERVALS")
 
-	i, err := strconv.ParseInt(intervals, 10, 64)
+	i, err := strconv.ParseInt(intervals, 10, 32)
 
 	if err != nil {
 		return 0
