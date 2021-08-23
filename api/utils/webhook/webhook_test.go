@@ -26,6 +26,7 @@ func TestDetermineScheduleType(t *testing.T) {
 }
 
 func TestFixedScheduler(t *testing.T) {
+	currentTime = time.Date(2021, 8, 20, 13, 10, 0, 0, time.UTC)
 	schedules := []string{"14:30", "15:31"}
 	_ = os.Setenv("SCHEDULE_TYPE", "FIXED")
 	_ = os.Setenv("SCHEDULES", strings.Join(schedules, ","))
@@ -67,6 +68,7 @@ func TestFixedScheduler(t *testing.T) {
 }
 
 func TestRandomMinuteScheduler(t *testing.T) {
+	currentTime = time.Date(2021, 8, 20, 13, 10, 0, 0, time.UTC)
 	seedVal = 1
 	schedules := []string{"14", "15"}
 	_ = os.Setenv("SCHEDULE_TYPE", "RANDOM_MINUTE")
@@ -153,8 +155,13 @@ func TestIntervalScheduler(t *testing.T) {
 
 func TestGetSchedules(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		schedules := []string{"14:30", "15:31"}
-		err := os.Setenv("SCHEDULES", strings.Join(schedules, ","))
+		currentTime = time.Date(2021, 8, 20, 13, 10, 0, 0, time.UTC)
+
+		first := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 14, 30, 0, 0, time.UTC)
+		second := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), 15, 31, 0, 0, time.UTC)
+		schedules := []time.Time{first, second}
+
+		err := os.Setenv("SCHEDULES", strings.Join([]string{"14:30", "15:31"}, ","))
 		if err != nil {
 			return
 		}
