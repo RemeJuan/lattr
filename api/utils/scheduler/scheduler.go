@@ -17,6 +17,8 @@ func Scheduler() {
 
 	if len(cr) == 0 {
 		schedule = "*/5 6-18 * * *"
+	} else {
+		schedule = cr
 	}
 
 	_, err := s.Cron(schedule).Do(getTweets)
