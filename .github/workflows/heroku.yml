@@ -1,0 +1,12 @@
+name: Trigger Heroku App Every Quarter
+
+on:
+  schedule:
+    - cron: '*/15 7-20 * * *'
+jobs:
+  build:
+    name: Trigger App
+    runs-on: ubuntu-latest
+    steps:
+      - name: cURL request
+        run: curl https://api.lattr.app
