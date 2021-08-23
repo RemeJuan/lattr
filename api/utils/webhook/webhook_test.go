@@ -11,6 +11,8 @@ import (
 )
 
 func TestDetermineScheduleType(t *testing.T) {
+	_ = os.Setenv("SCHEDULE_TYPE", "")
+
 	t.Run("Default Case", func(t *testing.T) {
 		tweet := &domain.Tweet{
 			PostTime: time.Date(2021, 8, 20, 14, 30, 0, 0, time.UTC),
@@ -22,6 +24,7 @@ func TestDetermineScheduleType(t *testing.T) {
 		assert.Equal(t, expected, result)
 	})
 }
+
 func TestFixedScheduler(t *testing.T) {
 	schedules := []string{"14:30", "15:31"}
 	_ = os.Setenv("SCHEDULE_TYPE", "FIXED")
