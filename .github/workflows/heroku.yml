@@ -9,4 +9,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: cURL request
-        run: curl https://api.lattr.app
+        run: curl https://api.lattr.app/tweets/1
