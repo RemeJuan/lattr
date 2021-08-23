@@ -68,6 +68,8 @@ CRON_SCHEDULE=
 * INTERVAL - when type is set as INTERVAL, provide a number to denote hours between posts, eg 3.
 * CRON_SCHEDULE - Cron string to control the schedulers checking of the DB for pending posts, default: "*/5 6-18 * * *"
 
+In `api/tables` you will find the SQL scripts needed to be run to setup the database
+
 ### Running locally
 
 CD into the `api` directory and run `make run`
