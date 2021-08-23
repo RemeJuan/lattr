@@ -3,6 +3,7 @@ package scheduler
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/RemeJuan/lattr/domain"
@@ -40,16 +41,19 @@ func getTweets() {
 	}
 
 	if ShouldPost(tweets[0]) {
+		var isDuplicate bool
+
 		tw := tweets[0]
 		fmt.Println("Posting tweet:", tw.Message)
 		postErr := twitter.CreateTweet(tw.Message)
 
 		if postErr != nil {
 			fmt.Println("Posting error: ", postErr)
+			isDuplicate = strings.Contains(postErr.Error(), "187")
 		}
 
-		if postErr == nil {
-			fmt.Println("Tweet posted successfully:", tw.Message)
+		if postErr == nil || isDuplicate {
+			fmt.Println("Tweeted", "was duplicate", isDuplicate, tw.Message)
 			tw.Status = domain.Posted
 			_, upErr := domain.TweetRepo.Update(&tw)
 
