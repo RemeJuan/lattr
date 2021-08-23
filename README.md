@@ -62,7 +62,8 @@ INTERVALS=
 * DATABASE_URL - PG database url, eg (postgres://un:pass@domain:port/database)
 * SCHEDULE_TYPE - Either INTERVAL, FIXED or RANDOM_MINUTE
 * SCHEDULES - Depends on schedule type
-    * FIXED - A coma seperated list of time slots, eg "01:53,03:17,05:21,06:09,08:11"
+    * FIXED - A coma seperated list of time slots, eg "1:53,3:17,5:21,6:09,8:11"
+      No leading zeros, 24hr time
     * RANDOM_MINUTE - A coma seperated list of "hours", eg "1,3,5,6,8"
 * INTERVAL - when type is set as INTERVAL, provide a number to denote hours between posts, eg 3.
 
