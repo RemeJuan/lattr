@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/RemeJuan/lattr/app"
 	"github.com/RemeJuan/lattr/domain"
@@ -13,7 +14,10 @@ func main() {
 
 	domain.TweetRepo.Initialize()
 
-	scheduler.Scheduler()
+	if os.Getenv("GIN_MODE") == "release" {
+		scheduler.Scheduler()
+	}
+
 	// setup sentry logging
 	app.Init()
 

@@ -21,7 +21,7 @@ func Scheduler() {
 
 	fmt.Println(do)
 
-	//s.StartAsync()
+	s.StartAsync()
 }
 
 func getTweets() {
