@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/RemeJuan/lattr/domain"
@@ -10,9 +11,15 @@ import (
 )
 
 func Scheduler() {
+	var schedule string
 	s := gocron.NewScheduler(time.UTC)
+	cr := os.Getenv("CRON_SCHEDULE")
 
-	do, err := s.Every(5).Minutes().Do(getTweets)
+	if len(cr) == 0 {
+		schedule = "*/5 6-18 * * *"
+	}
+
+	do, err := s.Cron(schedule).Do(getTweets)
 
 	if err != nil {
 		fmt.Println("Cron err", err)
@@ -33,7 +40,11 @@ func getTweets() {
 	}
 
 	if ShouldPost(tweets[0]) {
-		twitter.CreateTweet(tweets[0].Message)
+		tw := tweets[0]
+		twitter.CreateTweet(tw.Message)
+
+		tw.Status = domain.Posted
+		_, _ = domain.TweetRepo.Update(&tw)
 	}
 }
 
