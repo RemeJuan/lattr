@@ -1,7 +1,6 @@
 package webhook
 
 import (
-	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -11,14 +10,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestDetermineScheduleType(t *testing.T) {
+	t.Run("Default Case", func(t *testing.T) {
+		tweet := &domain.Tweet{
+			PostTime: time.Date(2021, 8, 20, 14, 30, 0, 0, time.UTC),
+		}
+
+		expected := time.Date(2021, 8, 20, 14, 30, 0, 0, time.UTC)
+		result := DetermineScheduleType(tweet.PostTime)
+
+		assert.Equal(t, expected, result)
+	})
+}
 func TestFixedScheduler(t *testing.T) {
 	schedules := []string{"14:30", "15:31"}
-	err := os.Setenv("SCHEDULES", strings.Join(schedules, ","))
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	_ = os.Setenv("SCHEDULE_TYPE", "FIXED")
+	_ = os.Setenv("SCHEDULES", strings.Join(schedules, ","))
 
 	t.Run("Returns next time slot", func(t *testing.T) {
 		tweet := &domain.Tweet{
@@ -26,7 +33,7 @@ func TestFixedScheduler(t *testing.T) {
 		}
 
 		expected := time.Date(2021, 8, 20, 15, 31, 0, 0, time.UTC)
-		result := FixedScheduler(tweet.PostTime)
+		result := DetermineScheduleType(tweet.PostTime)
 
 		assert.Equal(t, expected, result)
 	})
@@ -38,7 +45,7 @@ func TestFixedScheduler(t *testing.T) {
 
 		expected := time.Date(2021, 8, 21, 14, 30, 0, 0, time.UTC)
 
-		result := FixedScheduler(tweet.PostTime)
+		result := DetermineScheduleType(tweet.PostTime)
 
 		assert.Equal(t, expected, result)
 	})
@@ -50,7 +57,7 @@ func TestFixedScheduler(t *testing.T) {
 
 		expected := time.Date(2021, 9, 01, 14, 30, 0, 0, time.UTC)
 
-		result := FixedScheduler(tweet.PostTime)
+		result := DetermineScheduleType(tweet.PostTime)
 
 		assert.Equal(t, expected, result)
 	})
@@ -59,12 +66,8 @@ func TestFixedScheduler(t *testing.T) {
 func TestRandomMinuteScheduler(t *testing.T) {
 	seedVal = 1
 	schedules := []string{"14", "15"}
-	err := os.Setenv("SCHEDULES", strings.Join(schedules, ","))
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	_ = os.Setenv("SCHEDULE_TYPE", "RANDOM_MINUTE")
+	_ = os.Setenv("SCHEDULES", strings.Join(schedules, ","))
 
 	t.Run("Returns next time slot", func(t *testing.T) {
 		tweet := &domain.Tweet{
@@ -73,7 +76,7 @@ func TestRandomMinuteScheduler(t *testing.T) {
 
 		expected := time.Date(2021, 8, 20, 15, 55, 0, 0, time.UTC)
 
-		result := RandomMinuteScheduler(tweet.PostTime)
+		result := DetermineScheduleType(tweet.PostTime)
 
 		assert.Equal(t, expected, result)
 	})
@@ -85,7 +88,7 @@ func TestRandomMinuteScheduler(t *testing.T) {
 
 		expected := time.Date(2021, 8, 21, 14, 55, 0, 0, time.UTC)
 
-		result := RandomMinuteScheduler(tweet.PostTime)
+		result := DetermineScheduleType(tweet.PostTime)
 
 		assert.Equal(t, expected, result)
 	})
@@ -97,18 +100,16 @@ func TestRandomMinuteScheduler(t *testing.T) {
 
 		expected := time.Date(2021, 9, 01, 14, 55, 0, 0, time.UTC)
 
-		result := RandomMinuteScheduler(tweet.PostTime)
+		result := DetermineScheduleType(tweet.PostTime)
 
 		assert.Equal(t, expected, result)
 	})
 }
 
 func TestIntervalScheduler(t *testing.T) {
-	err := os.Setenv("INTERVALS", "2")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	// Ensure test falls into the switch which returns [IntervalScheduler]
+	_ = os.Setenv("SCHEDULE_TYPE", "INTERVALS")
+	_ = os.Setenv("INTERVALS", "2")
 
 	t.Run("Success", func(t *testing.T) {
 		tweet := &domain.Tweet{
@@ -117,7 +118,7 @@ func TestIntervalScheduler(t *testing.T) {
 
 		expected := time.Date(2021, 8, 20, 16, 30, 0, 0, time.UTC)
 
-		result := IntervalScheduler(tweet.PostTime)
+		result := DetermineScheduleType(tweet.PostTime)
 
 		assert.Equal(t, expected, result)
 	})
@@ -129,7 +130,7 @@ func TestIntervalScheduler(t *testing.T) {
 
 		expected := time.Date(2021, 8, 21, 01, 30, 0, 0, time.UTC)
 
-		result := IntervalScheduler(tweet.PostTime)
+		result := DetermineScheduleType(tweet.PostTime)
 
 		assert.Equal(t, expected, result)
 	})
@@ -141,7 +142,7 @@ func TestIntervalScheduler(t *testing.T) {
 
 		expected := time.Date(2021, 9, 01, 01, 30, 0, 0, time.UTC)
 
-		result := IntervalScheduler(tweet.PostTime)
+		result := DetermineScheduleType(tweet.PostTime)
 
 		assert.Equal(t, expected, result)
 	})
