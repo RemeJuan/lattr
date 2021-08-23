@@ -54,7 +54,7 @@ func getTweets() {
 			_, upErr := domain.TweetRepo.Update(&tw)
 
 			if upErr != nil {
-				fmt.Println("error updated tweeted entry", upErr, tw.Message)
+				fmt.Println("error updating tweeted entry", upErr.Error(), upErr.Message())
 			}
 		}
 	}
