@@ -53,7 +53,12 @@ func getTweets() {
 		}
 
 		if postErr == nil || isDuplicate {
-			fmt.Println("Tweeted", "was duplicate", isDuplicate, tw.Message)
+			if isDuplicate {
+				fmt.Println("Marking duplicate as posted")
+			} else {
+				fmt.Println("Tweeted", isDuplicate, tw.Message)
+			}
+
 			tw.Status = domain.Posted
 			tw.Modified = time.Now()
 			_, upErr := domain.TweetRepo.Update(&tw)
