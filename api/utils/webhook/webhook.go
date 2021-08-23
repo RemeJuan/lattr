@@ -59,7 +59,7 @@ func RandomMinuteScheduler(inTime time.Time) time.Time {
 func FixedScheduler(inTime time.Time) time.Time {
 	schedules := GetSchedules()
 	schedCnt := len(schedules)
-	compTime := fmt.Sprintf("%v:%v", inTime.Hour(), inTime.Minute())
+	compTime := fmt.Sprintf("%02d:%02d", inTime.Hour(), inTime.Minute())
 	idx := indexOf(schedules, compTime)
 	hasNextSlot := idx+1 < schedCnt
 
