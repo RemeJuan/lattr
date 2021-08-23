@@ -106,7 +106,7 @@ func GetInterval() int64 {
 }
 
 func splitTimeString(slot string) (int, int) {
-	hm := strings.Split(slot, ":")
+	hm := strings.Split(strings.TrimSpace(slot), ":")
 	hour, _ := strconv.ParseInt(hm[0], 10, 64)
 	min, _ := strconv.ParseInt(hm[1], 10, 64)
 
@@ -121,7 +121,7 @@ func randomMinute(seedVal int64) int {
 
 func indexOf(s []string, str string) int {
 	for idx, v := range s {
-		if v == str {
+		if strings.TrimSpace(v) == strings.TrimSpace(str) {
 			return idx
 		}
 	}
