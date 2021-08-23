@@ -19,14 +19,12 @@ func Scheduler() {
 		schedule = "*/5 6-18 * * *"
 	}
 
-	do, err := s.Cron(schedule).Do(getTweets)
+	_, err := s.Cron(schedule).Do(getTweets)
 
 	if err != nil {
 		fmt.Println("Cron err", err)
 		return
 	}
-
-	fmt.Println(do)
 
 	s.StartAsync()
 }
