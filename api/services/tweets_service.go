@@ -30,7 +30,6 @@ func (ts tweetService) Create(tweet *domain.Tweet) (*domain.Tweet, error_utils.M
 
 	tweet.CreatedAt = time.Now()
 	tweet.Modified = time.Now()
-	tweet.Status = domain.Pending
 	tweet.PostTime = tweet.PostTime.UTC()
 
 	tw, err := domain.TweetRepo.Create(tweet)

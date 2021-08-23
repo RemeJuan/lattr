@@ -20,7 +20,7 @@ func CreateTweet(c *gin.Context) {
 		c.JSON(theErr.Status(), theErr)
 		return
 	}
-
+	tweet.Status = domain.Pending
 	msg, err := services.TweetService.Create(&tweet)
 	if err != nil {
 		c.JSON(err.Status(), err)
