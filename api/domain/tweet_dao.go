@@ -15,13 +15,13 @@ var (
 )
 
 var (
-	queryGetTweet         = "SELECT Id, UserId, Message, PostTime, Status, CreatedAt, Modified FROM tweets WHERE id=$1;"
-	queryInsertTweet      = "INSERT INTO tweets(UserId, Message, PostTime, Status, CreatedAt, Modified) VALUES($1, $2, $3, $4, $5, $6) RETURNING ID;"
-	queryUpdateTweet      = "UPDATE tweets SET Message=$1, PostTime=$2 Status=$3 Modified=$4 WHERE id=$5;"
-	queryGetAllTweets     = "SELECT * FROM tweets WHERE UserId=$1;"
-	queryDeleteTweet      = "DELETE FROM tweets WHERE id=$1;"
-	queryGetPendingTweets = "SELECT * FROM tweets WHERE Status='Pending' AND PostTime <= now() order by PostTime asc LIMIT 1"
-	queryGetLastTweet     = "SELECT PostTime FROM tweets WHERE Status='Scheduled' ORDER by PostTime asc LIMIT 1"
+	queryGetTweet              = "SELECT Id, UserId, Message, PostTime, Status, CreatedAt, Modified FROM tweets WHERE id=$1;"
+	queryInsertTweet           = "INSERT INTO tweets(UserId, Message, PostTime, Status, CreatedAt, Modified) VALUES($1, $2, $3, $4, $5, $6) RETURNING ID;"
+	queryUpdateTweet           = "UPDATE tweets SET Message=$1, PostTime=$2 Status=$3 Modified=$4 WHERE id=$5;"
+	queryGetAllTweets          = "SELECT * FROM tweets WHERE UserId=$1;"
+	queryDeleteTweet           = "DELETE FROM tweets WHERE id=$1;"
+	queryGetPendingTweets      = "SELECT * FROM tweets WHERE Status != 'Pending' AND PostTime <= now() order by PostTime asc LIMIT 1"
+	queryGetLastScheduledTweet = "SELECT PostTime FROM tweets WHERE Status='Scheduled' ORDER by PostTime asc LIMIT 1"
 )
 
 type TweetRepoInterface interface {
@@ -193,7 +193,7 @@ func (tr *tweetRepo) GetPending() ([]Tweet, error_utils.MessageErr) {
 }
 
 func (tr *tweetRepo) GetLast() (*Tweet, error_utils.MessageErr) {
-	stmt, err := tr.db.Prepare(queryGetLastTweet)
+	stmt, err := tr.db.Prepare(queryGetLastScheduledTweet)
 
 	if err != nil {
 		message := fmt.Sprintf("Error retrieving record: %s", err)

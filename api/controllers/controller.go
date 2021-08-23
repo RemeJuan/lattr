@@ -1,13 +1,14 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/RemeJuan/lattr/domain"
 	"github.com/RemeJuan/lattr/services"
 	"github.com/RemeJuan/lattr/utils/error_utils"
+	"github.com/RemeJuan/lattr/utils/webhook"
 	"github.com/gin-gonic/gin"
 )
 
@@ -104,6 +105,7 @@ func DeleteTweet(c *gin.Context) {
 
 func WebHook(c *gin.Context) {
 	var tweet domain.Tweet
+	var tweetTime time.Time
 
 	if err := c.ShouldBindJSON(&tweet); err != nil {
 		theErr := error_utils.UnprocessableEntityError("invalid json body")
@@ -112,12 +114,19 @@ func WebHook(c *gin.Context) {
 	}
 
 	last, lErr := services.TweetService.GetLast()
-	fmt.Println(last)
-	if lErr != nil {
+	if last == nil {
+		tweetTime = webhook.DetermineScheduleType(time.Now())
+	} else {
+		tweetTime = webhook.DetermineScheduleType(last.PostTime)
+	}
+
+	if lErr != nil && lErr.Error() != "not_found" {
 		c.JSON(lErr.Status(), lErr)
 		return
 	}
 
+	tweet.PostTime = tweetTime
+	tweet.Status = domain.Scheduled
 	msg, err := services.TweetService.Create(&tweet)
 	if err != nil {
 		c.JSON(err.Status(), err)
