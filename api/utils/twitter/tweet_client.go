@@ -1,4 +1,4 @@
-package twitter_client
+package twitter
 
 import (
 	"log"
@@ -58,17 +58,19 @@ func getCredentials() *credentials {
 	}
 }
 
-func CreateTweet(tweet string) {
+func CreateTweet(tweet string) error {
 	client, err := getClient(getCredentials())
 
 	if err != nil {
 		log.Println("Error getting Twitter Client")
 		log.Println(err)
-		return
+		return err
 	}
 
 	_, _, err = client.Statuses.Update(tweet, nil)
 	if err != nil {
-		return
+		return err
 	}
+
+	return nil
 }

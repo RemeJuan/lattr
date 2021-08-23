@@ -19,6 +19,8 @@ type tweetServiceInterface interface {
 	GetAll(string) ([]domain.Tweet, error_utils.MessageErr)
 	Update(*domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
 	Delete(int64) error_utils.MessageErr
+	GetPending() ([]domain.Tweet, error_utils.MessageErr)
+	GetLast() (*domain.Tweet, error_utils.MessageErr)
 }
 
 func (ts tweetService) Create(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
@@ -27,13 +29,15 @@ func (ts tweetService) Create(tweet *domain.Tweet) (*domain.Tweet, error_utils.M
 	}
 
 	tweet.CreatedAt = time.Now()
-	tweet, err := domain.TweetRepo.Create(tweet)
+	tweet.Modified = time.Now()
+	tweet.PostTime = tweet.PostTime.UTC()
 
+	tw, err := domain.TweetRepo.Create(tweet)
 	if err != nil {
 		return nil, err
 	}
 
-	return tweet, nil
+	return tw, nil
 }
 
 func (ts tweetService) Get(id int64) (*domain.Tweet, error_utils.MessageErr) {
@@ -82,4 +86,20 @@ func (ts tweetService) Delete(id int64) error_utils.MessageErr {
 		return deleteErr
 	}
 	return nil
+}
+
+func (ts tweetService) GetPending() ([]domain.Tweet, error_utils.MessageErr) {
+	messages, err := domain.TweetRepo.GetPending()
+	if err != nil {
+		return nil, err
+	}
+	return messages, nil
+}
+
+func (ts tweetService) GetLast() (*domain.Tweet, error_utils.MessageErr) {
+	messages, err := domain.TweetRepo.GetLast()
+	if err != nil {
+		return nil, err
+	}
+	return messages, nil
 }

@@ -22,6 +22,65 @@ Things like analytics will not be added in, for that you could use services like
 URL's and track if that way, once a web ui is added I will add in integrations with such services to automate the
 process.
 
-# How To...
+## How To...
 
-Coming soon, this is still in early development.
+### Requirements
+
+In order to run the app locally you would need GoLang v1.16+.
+
+To host the project there is a Docker file setup ready to be deployed, outside of that you would need a postgress
+database.
+
+In either scenario you would need the following environment variables configured as well as Twitter API credentials.
+
+```env
+PORT=
+GIN_MODE=
+
+# Twitter
+CONSUMER_KEY=
+CONSUMER_SECRET=
+ACCESS_TOKEN=
+ACCESS_TOKEN_SECRET= 
+
+#Sentry
+SENTRY_DNS=
+
+# Postgress
+DATABASE_URL=
+
+# Scheduler
+SCHEDULE_TYPE=
+SCHEDULES=
+INTERVALS=
+CRON_SCHEDULE=
+```
+
+* PORT - exposed web port
+* GIN_MODE - release for release or debug for local dev
+* Twitter Credentials - available from [Twitter](http://developer.twitter.com)
+* SENTRY_DNS - optional, for debug logging.
+* DATABASE_URL - PG database url, eg (postgres://un:pass@domain:port/database)
+* SCHEDULE_TYPE - Either INTERVAL, FIXED or RANDOM_MINUTE
+* SCHEDULES - Depends on schedule type
+    * FIXED - A coma seperated list of time slots, eg "01:53,03:17,05:21,06:09,08:11", 24hr time
+    * RANDOM_MINUTE - A coma seperated list of "hours", eg "1,3,5,6,8"
+* INTERVAL - when type is set as INTERVAL, provide a number to denote hours between posts, eg 3.
+* CRON_SCHEDULE - Cron string to control the schedulers checking of the DB for pending posts, default: "*/5 6-18 * * *"
+
+In `api/tables` you will find the SQL scripts needed to be run to setup the database
+
+### Running locally
+
+CD into the `api` directory and run `make run`
+
+### Deploying
+
+#### Heroku
+
+Make sure you have the heroku CLI too installed and are logged in.
+
+Run `heroku stack:set container --app APP_NAME`
+
+You can then either add heroku as a remote to your project and push the code up, connect the heroku project to your
+GitHUb account for automated deployment.

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/RemeJuan/lattr/domain"
 	"github.com/RemeJuan/lattr/services"
@@ -16,11 +17,13 @@ import (
 )
 
 var (
-	createTweetService func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
-	getTweetService    func(msgId int64) (*domain.Tweet, error_utils.MessageErr)
-	updateTweetService func(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
-	deleteTweetService func(msgId int64) error_utils.MessageErr
-	getAllTweetService func(userId string) ([]domain.Tweet, error_utils.MessageErr)
+	createTweetService     func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
+	getTweetService        func(msgId int64) (*domain.Tweet, error_utils.MessageErr)
+	updateTweetService     func(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
+	deleteTweetService     func(msgId int64) error_utils.MessageErr
+	getAllTweetService     func(userId string) ([]domain.Tweet, error_utils.MessageErr)
+	getPendingTweetService func() ([]domain.Tweet, error_utils.MessageErr)
+	getLastTweet           func() (*domain.Tweet, error_utils.MessageErr)
 )
 
 type serviceMock struct {
@@ -46,13 +49,22 @@ func (sm *serviceMock) Delete(id int64) error_utils.MessageErr {
 	return deleteTweetService(id)
 }
 
+func (sm *serviceMock) GetPending() ([]domain.Tweet, error_utils.MessageErr) {
+	return getPendingTweetService()
+}
+
+func (sm *serviceMock) GetLast() (*domain.Tweet, error_utils.MessageErr) {
+	return getLastTweet()
+}
+
 const basePath = "/tweets"
+const layout = "2021-07-12 10:55:50 +0000"
 
 func TestCreateTweet(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	const recordId int64 = 1
-	const postTime = "2021-07-12 10:55:50 +0000"
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		services.TweetService = &serviceMock{}
@@ -133,7 +145,7 @@ func TestGetTweet(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	const recordId int64 = 1
-	const postTime = "2021-07-12 10:55:50 +0000"
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		services.TweetService = &serviceMock{}
@@ -213,7 +225,7 @@ func TestGetTweets(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	const recordId int64 = 1
-	const postTime = "2021-07-12 10:55:50 +0000"
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		services.TweetService = &serviceMock{}
@@ -292,7 +304,7 @@ func TestUpdateTweet(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	const recordId int64 = 1
-	const postTime = "2021-07-12 10:55:50 +0000"
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		services.TweetService = &serviceMock{}
@@ -455,5 +467,129 @@ func TestDeleteTweet(t *testing.T) {
 		assert.EqualValues(t, rr.Code, apiErr.Status())
 		assert.Equal(t, "Unable to delete entry", apiErr.Message())
 		assert.Equal(t, "server_error", apiErr.Error())
+	})
+}
+
+func TestWebHook(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	const recordId = 1
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
+
+	t.Run("Success", func(t *testing.T) {
+		services.TweetService = &serviceMock{}
+
+		const msg = "the message"
+
+		getLastTweet = func() (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
+				Id:       recordId,
+				Message:  msg,
+				PostTime: postTime,
+			}, nil
+		}
+
+		createTweetService = func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
+				Id:       recordId,
+				Message:  msg,
+				PostTime: postTime,
+			}, nil
+		}
+
+		jsonBody := `{"message": "the message"}`
+		r := gin.Default()
+		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(jsonBody))
+		if err != nil {
+			t.Errorf("this is the error: %v\n", err)
+		}
+		rr := httptest.NewRecorder()
+		r.POST(basePath, WebHook)
+		r.ServeHTTP(rr, req)
+
+		var tweet domain.Tweet
+		err = json.Unmarshal(rr.Body.Bytes(), &tweet)
+		assert.Nil(t, err)
+		assert.NotNil(t, tweet)
+		assert.EqualValues(t, http.StatusCreated, rr.Code)
+		assert.EqualValues(t, recordId, tweet.Id)
+		assert.EqualValues(t, msg, tweet.Message)
+		assert.EqualValues(t, postTime, tweet.PostTime)
+	})
+
+	t.Run("Invalid JSON", func(t *testing.T) {
+		inputJson := ""
+		r := gin.Default()
+		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(inputJson))
+		if err != nil {
+			t.Errorf("this is the error: %v\n", err)
+		}
+		rr := httptest.NewRecorder()
+		r.POST("/tweets", WebHook)
+		r.ServeHTTP(rr, req)
+
+		apiErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+		assert.Nil(t, err)
+		assert.EqualValues(t, http.StatusUnprocessableEntity, apiErr.Status())
+		assert.EqualValues(t, "invalid json body", apiErr.Message())
+		assert.EqualValues(t, "invalid_request", apiErr.Error())
+	})
+
+	t.Run("GetLast Error", func(t *testing.T) {
+		services.TweetService = &serviceMock{}
+
+		getLastTweet = func() (*domain.Tweet, error_utils.MessageErr) {
+			return nil, error_utils.UnprocessableEntityError("No tweets found")
+		}
+
+		jsonBody := `{}`
+		r := gin.Default()
+		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(jsonBody))
+		if err != nil {
+			t.Errorf("this is the error: %v\n", err)
+		}
+		rr := httptest.NewRecorder()
+		r.POST(basePath, WebHook)
+		r.ServeHTTP(rr, req)
+
+		msgErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+		assert.EqualValues(t, http.StatusUnprocessableEntity, msgErr.Status())
+		assert.EqualValues(t, "No tweets found", msgErr.Message())
+		assert.EqualValues(t, "invalid_request", msgErr.Error())
+	})
+
+	t.Run("Create Error", func(t *testing.T) {
+		services.TweetService = &serviceMock{}
+
+		const msg = "the message"
+
+		getLastTweet = func() (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
+				Id:       recordId,
+				Message:  msg,
+				PostTime: postTime,
+			}, nil
+		}
+
+		createTweetService = func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
+			return nil, error_utils.UnprocessableEntityError("Body cannot be empty")
+		}
+		jsonBody := `{}`
+		r := gin.Default()
+		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(jsonBody))
+		if err != nil {
+			t.Errorf("this is the error: %v\n", err)
+		}
+		rr := httptest.NewRecorder()
+		r.POST(basePath, CreateTweet)
+		r.ServeHTTP(rr, req)
+
+		msgErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+		assert.EqualValues(t, http.StatusUnprocessableEntity, msgErr.Status())
+		assert.EqualValues(t, "Body cannot be empty", msgErr.Message())
+		assert.EqualValues(t, "invalid_request", msgErr.Error())
 	})
 }

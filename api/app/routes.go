@@ -18,6 +18,6 @@ func Router() {
 		g.DELETE("/:id", controllers.DeleteTweet)
 	}
 
-	//r.POST("/webhook", con.WebHook)
+	r.POST("/webhook", controllers.WebHook)
 	log.Fatalln(r.Run())
 }
