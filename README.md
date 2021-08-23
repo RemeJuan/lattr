@@ -53,6 +53,7 @@ DATABASE_URL=
 SCHEDULE_TYPE=
 SCHEDULES=
 INTERVALS=
+CRON_SCHEDULE=
 ```
 
 * PORT - exposed web port
@@ -65,6 +66,7 @@ INTERVALS=
     * FIXED - A coma seperated list of time slots, eg "01:53,03:17,05:21,06:09,08:11", 24hr time
     * RANDOM_MINUTE - A coma seperated list of "hours", eg "1,3,5,6,8"
 * INTERVAL - when type is set as INTERVAL, provide a number to denote hours between posts, eg 3.
+* CRON_SCHEDULE - Cron string to control the schedulers checking of the DB for pending posts, default: "*/5 6-18 * * *"
 
 ### Running locally
 
