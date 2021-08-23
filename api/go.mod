@@ -4,9 +4,10 @@ go 1.16
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/dannav/hhmmss v1.0.0 // indirect
+	github.com/canthefason/go-watcher v0.2.4 // indirect
 	github.com/dghubble/go-twitter v0.0.0-20210609183100-2fdbf421508e
 	github.com/dghubble/oauth1 v0.7.0
+	github.com/fatih/color v1.12.0 // indirect
 	github.com/getsentry/sentry-go v0.11.0
 	github.com/gin-gonic/gin v1.7.3
 	github.com/go-co-op/gocron v1.7.0

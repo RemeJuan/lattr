@@ -2,7 +2,7 @@ GO=go
 GOCOVER=$(GO) tool cover
 
 run:
-	go run main.go
+	watcher main.go
 
 test:
 	go test ./...
