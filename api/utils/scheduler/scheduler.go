@@ -41,11 +41,21 @@ func getTweets() {
 
 	if ShouldPost(tweets[0]) {
 		tw := tweets[0]
+		fmt.Println("Posting tweet:", tw.Message)
 		postErr := twitter.CreateTweet(tw.Message)
 
+		if postErr != nil {
+			fmt.Println("Posting error: ", postErr)
+		}
+
 		if postErr == nil {
+			fmt.Println("Tweet posted successfully:", tw.Message)
 			tw.Status = domain.Posted
-			_, _ = domain.TweetRepo.Update(&tw)
+			_, upErr := domain.TweetRepo.Update(&tw)
+
+			if upErr != nil {
+				fmt.Println("error updated tweeted entry", upErr, tw.Message)
+			}
 		}
 	}
 }
