@@ -20,7 +20,7 @@ const (
 
 var (
 	seedVal     = time.Now().UnixNano()
-	currentTime = time.Now()
+	currentTime = time.Now().Local()
 )
 
 func DetermineScheduleType(time time.Time) time.Time {
@@ -73,7 +73,7 @@ func getSchedules() []time.Time {
 		hour, min := splitTimeString(val)
 
 		for i := 0; i < 30; i++ {
-			t := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day()+i, hour, min, 0, 0, time.UTC)
+			t := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day()+i, hour, min, 0, 0, time.Local)
 			result = append(result, t)
 		}
 	}

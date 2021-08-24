@@ -13,7 +13,7 @@ import (
 
 func Scheduler() {
 	var schedule string
-	s := gocron.NewScheduler(time.UTC)
+	s := gocron.NewScheduler(time.Local)
 	cr := os.Getenv("CRON_SCHEDULE")
 
 	if len(cr) == 0 {
@@ -60,7 +60,7 @@ func getTweets() {
 			}
 
 			tw.Status = domain.Posted
-			tw.Modified = time.Now()
+			tw.Modified = time.Now().Local()
 			_, upErr := domain.TweetRepo.Update(&tw)
 
 			if upErr != nil {
@@ -71,7 +71,7 @@ func getTweets() {
 }
 
 func ShouldPost(tweet domain.Tweet) bool {
-	now := time.Now().UTC()
+	now := time.Now().Local()
 
-	return now.After(tweet.PostTime.UTC())
+	return now.After(tweet.PostTime.Local())
 }

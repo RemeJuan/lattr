@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	tm                     = time.Now()
+	tm                     = time.Now().Local()
 	createTweetDomain      func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
 	getTweetDomain         func(messageId int64) (*domain.Tweet, error_utils.MessageErr)
 	updateTweetDomain      func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
@@ -51,9 +51,11 @@ func (m *getDBMock) Initialize() *sql.DB {
 	return nil
 }
 
+const layout = "2021-07-12 10:55:50 +0000"
+
 func TestTweetService_Create(t *testing.T) {
 	const recordId int64 = 1
-	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		domain.TweetRepo = &getDBMock{}
@@ -115,7 +117,7 @@ func TestTweetService_Create(t *testing.T) {
 
 func TestTweetService_Get(t *testing.T) {
 	const recordId int64 = 1
-	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 	var message = ""
 
 	t.Run("Success", func(t *testing.T) {
@@ -160,7 +162,7 @@ func TestTweetService_Get(t *testing.T) {
 
 func TestTweetService_GetAll(t *testing.T) {
 	const userId = "001"
-	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 	var message = ""
 
 	t.Run("Success", func(t *testing.T) {
@@ -224,8 +226,8 @@ func TestTweetService_GetAll(t *testing.T) {
 
 func TestTweetService_Update(t *testing.T) {
 	const recordId int64 = 1
-	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
-	updatedTime, _ := time.Parse("2021-07-13 10:55:50 +0000", "2021-07-13 10:55:50 +0000")
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
+	updatedTime, _ := time.Parse(layout, "2021-07-13 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		domain.TweetRepo = &getDBMock{}
@@ -306,7 +308,7 @@ func TestTweetService_Update(t *testing.T) {
 
 func TestTweetService_Delete(t *testing.T) {
 	const recordId int64 = 1
-	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 	var message = ""
 
 	t.Run("Success", func(t *testing.T) {
@@ -370,7 +372,7 @@ func TestTweetService_Delete(t *testing.T) {
 
 func TestTweetService_GetPending(t *testing.T) {
 	const userId = "001"
-	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 	var message = ""
 
 	t.Run("Success", func(t *testing.T) {
@@ -433,7 +435,7 @@ func TestTweetService_GetPending(t *testing.T) {
 }
 
 func TestTweetService_GetLast(t *testing.T) {
-	postTime, _ := time.Parse("2021-07-12 10:55:50 +0000", "2021-07-12 10:55:50 +0000")
+	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
 		domain.TweetRepo = &getDBMock{}

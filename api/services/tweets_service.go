@@ -28,9 +28,9 @@ func (ts tweetService) Create(tweet *domain.Tweet) (*domain.Tweet, error_utils.M
 		return nil, err
 	}
 
-	tweet.CreatedAt = time.Now()
-	tweet.Modified = time.Now()
-	tweet.PostTime = tweet.PostTime.UTC()
+	tweet.CreatedAt = time.Now().Local()
+	tweet.Modified = time.Now().Local()
+	tweet.PostTime = tweet.PostTime.Local()
 
 	tw, err := domain.TweetRepo.Create(tweet)
 	if err != nil {
@@ -67,7 +67,7 @@ func (ts tweetService) Update(tweet *domain.Tweet) (*domain.Tweet, error_utils.M
 	current.Message = tweet.Message
 	current.PostTime = tweet.PostTime
 	current.Status = tweet.Status
-	current.Modified = time.Now()
+	current.Modified = time.Now().Local()
 
 	updateMsg, err := domain.TweetRepo.Update(current)
 	if err != nil {

@@ -115,7 +115,7 @@ func WebHook(c *gin.Context) {
 
 	last, lErr := services.TweetService.GetLast()
 	if last == nil {
-		tweetTime = webhook.DetermineScheduleType(time.Now())
+		tweetTime = webhook.DetermineScheduleType(time.Now().Local())
 	} else {
 		tweetTime = webhook.DetermineScheduleType(last.PostTime)
 	}
