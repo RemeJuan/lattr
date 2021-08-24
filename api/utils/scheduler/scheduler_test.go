@@ -8,9 +8,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const layout = "2021-07-18 12:55:50 +0200 SAST"
+
 func TestShouldPost(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		p, _ := time.Parse("2021-07-18 12:55:50 +0200 SAST", "2021-07-18 12:55:50 +0200 SAST")
+		p, _ := time.Parse(layout, "2021-07-18 12:55:50 +0200 SAST")
 
 		tweet := &domain.Tweet{
 			PostTime: p,

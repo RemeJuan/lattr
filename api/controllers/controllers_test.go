@@ -6,12 +6,15 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/RemeJuan/lattr/domain"
 	"github.com/RemeJuan/lattr/services"
 	"github.com/RemeJuan/lattr/utils/error_utils"
+	"github.com/RemeJuan/lattr/utils/webhook"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
@@ -472,6 +475,12 @@ func TestDeleteTweet(t *testing.T) {
 
 func TestWebHook(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+
+	schedules := []string{"14:30", "15:31"}
+	_ = os.Setenv("SCHEDULE_TYPE", "FIXED")
+	_ = os.Setenv("SCHEDULES", strings.Join(schedules, ","))
+
+	webhook.GetSchedules()
 
 	const recordId = 1
 	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")

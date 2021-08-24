@@ -12,14 +12,13 @@ import (
 
 func TestDetermineScheduleType(t *testing.T) {
 	_ = os.Setenv("SCHEDULE_TYPE", "")
+	GetSchedules()
 
 	t.Run("Default Case", func(t *testing.T) {
-		tweet := &domain.Tweet{
-			PostTime: time.Date(2021, 8, 20, 14, 30, 0, 0, time.Local),
-		}
+		postTIme := time.Date(2021, 8, 20, 14, 30, 0, 0, time.Local)
 
 		expected := time.Date(2021, 8, 20, 14, 30, 0, 0, time.Local)
-		result := DetermineScheduleType(tweet.PostTime)
+		result := DetermineScheduleType(postTIme)
 
 		assert.Equal(t, expected, result)
 	})
@@ -31,13 +30,13 @@ func TestFixedScheduler(t *testing.T) {
 	_ = os.Setenv("SCHEDULE_TYPE", "FIXED")
 	_ = os.Setenv("SCHEDULES", strings.Join(schedules, ","))
 
+	GetSchedules()
+
 	t.Run("Returns next time slot", func(t *testing.T) {
-		tweet := &domain.Tweet{
-			PostTime: time.Date(2021, 8, 20, 14, 30, 0, 0, time.Local),
-		}
+		postTime := time.Date(2021, 8, 20, 14, 30, 0, 0, time.Local)
 
 		expected := time.Date(2021, 8, 20, 15, 31, 0, 0, time.Local)
-		result := DetermineScheduleType(tweet.PostTime)
+		result := DetermineScheduleType(postTime)
 
 		assert.Equal(t, expected, result)
 	})
@@ -74,14 +73,14 @@ func TestRandomMinuteScheduler(t *testing.T) {
 	_ = os.Setenv("SCHEDULE_TYPE", "RANDOM_MINUTE")
 	_ = os.Setenv("SCHEDULES", strings.Join(schedules, ","))
 
+	GetSchedules()
+
 	t.Run("Returns next time slot", func(t *testing.T) {
-		tweet := &domain.Tweet{
-			PostTime: time.Date(2021, 8, 20, 14, 30, 0, 0, time.Local),
-		}
+		postTime := time.Date(2021, 8, 20, 14, 30, 0, 0, time.Local)
 
 		expected := time.Date(2021, 8, 20, 15, 55, 0, 0, time.Local)
 
-		result := DetermineScheduleType(tweet.PostTime)
+		result := DetermineScheduleType(postTime)
 
 		assert.Equal(t, expected, result)
 	})
