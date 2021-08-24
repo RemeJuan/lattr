@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -83,8 +84,11 @@ func GetSchedules() []time.Time {
 
 	for _, val := range slots {
 		hour, min := splitTimeString(val)
-		t := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), hour, min, 0, 0, time.UTC)
-		result = append(result, t)
+
+		for i := 0; i < 10; i++ {
+			t := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day()+i, hour, min, 0, 0, time.UTC)
+			result = append(result, t)
+		}
 	}
 
 	return result
@@ -102,7 +106,7 @@ func GetInterval() int64 {
 	return i
 }
 
-// Get time slots that are both greater than now and the most recent scheduled post
+// getValidTimeSlots Get time slots that are both greater than now and the most recent scheduled post
 func getValidTimeSlots(scheduleSlots []time.Time, lastPostTime time.Time) []time.Time {
 	slots := make([]time.Time, 0)
 
@@ -111,6 +115,10 @@ func getValidTimeSlots(scheduleSlots []time.Time, lastPostTime time.Time) []time
 			slots = append(slots, val)
 		}
 	}
+
+	sort.Slice(slots, func(i, j int) bool {
+		return slots[i].Before(slots[j])
+	})
 
 	return slots
 }
