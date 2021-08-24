@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -38,80 +39,69 @@ func DetermineScheduleType(time time.Time) time.Time {
 }
 
 func RandomMinuteScheduler(inTime time.Time) time.Time {
-	schedules := GetSchedules()
+	schedules := getSchedules()
 	slots := getValidTimeSlots(schedules, inTime)
-	hasNextSlot := len(slots) > 0
 
 	min := randomMinute(seedVal)
 
-	if hasNextSlot {
-		slot := slots[0]
-		return time.Date(inTime.Year(), inTime.Month(), inTime.Day(), slot.Hour(), min, 0, 0, inTime.Location())
-	} else {
-		d := inTime.Day() + 1
-		slot := schedules[0]
-		return time.Date(inTime.Year(), inTime.Month(), d, slot.Hour(), min, 0, 0, inTime.Location())
-	}
+	slot := slots[0]
+	return time.Date(slot.Year(), slot.Month(), slot.Day(), slot.Hour(), min, 0, 0, inTime.Location())
+
 }
 
 func FixedScheduler(inTime time.Time) time.Time {
-	schedules := GetSchedules()
+	schedules := getSchedules()
 	slots := getValidTimeSlots(schedules, inTime)
-	hasNextSlot := len(slots) > 0
 
-	if hasNextSlot {
-		slot := slots[0]
-		return time.Date(inTime.Year(), inTime.Month(), inTime.Day(), slot.Hour(), slot.Minute(), 0, 0, inTime.Location())
-	} else {
-		d := inTime.Day() + 1
-		slot := schedules[0]
+	slot := slots[0]
+	return time.Date(slot.Year(), slot.Month(), slot.Day(), slot.Hour(), slot.Minute(), 0, 0, inTime.Location())
 
-		return time.Date(inTime.Year(), inTime.Month(), d, slot.Hour(), slot.Minute(), 0, 0, inTime.Location())
-	}
 }
 
 func IntervalScheduler(inTime time.Time) time.Time {
-	interval := GetInterval()
+	interval := getInterval()
 	duration, _ := time.ParseDuration(fmt.Sprintf("%vh", interval))
 	return inTime.Add(duration)
 }
 
-func GetSchedules() []time.Time {
+func getSchedules() []time.Time {
 	schedules := os.Getenv("SCHEDULES")
 	slots := strings.Split(schedules, ",")
 	result := make([]time.Time, 0)
 
 	for _, val := range slots {
 		hour, min := splitTimeString(val)
-		t := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), hour, min, 0, 0, time.UTC)
-		result = append(result, t)
+
+		for i := 0; i < 30; i++ {
+			t := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day()+i, hour, min, 0, 0, time.UTC)
+			result = append(result, t)
+		}
 	}
 
 	return result
 }
 
-func GetInterval() int64 {
+func getInterval() int64 {
 	intervals := os.Getenv("INTERVALS")
 
-	i, err := strconv.ParseInt(intervals, 10, 0)
-
-	if err != nil {
-		return 0
-	}
+	i, _ := strconv.ParseInt(intervals, 10, 0)
 
 	return i
 }
 
-// Get time slots that are both greater than now and the most recent scheduled post
+// getValidTimeSlots Get time slots that are both greater than now and the most recent scheduled post
 func getValidTimeSlots(scheduleSlots []time.Time, lastPostTime time.Time) []time.Time {
 	slots := make([]time.Time, 0)
-
 	for _, val := range scheduleSlots {
 		if val.After(currentTime) && val.After(lastPostTime) {
 			slots = append(slots, val)
 		}
 	}
 
+	sort.Slice(slots, func(i, j int) bool {
+		return slots[i].Before(slots[j])
+	})
+	fmt.Println(slots)
 	return slots
 }
 
