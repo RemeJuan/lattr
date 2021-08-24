@@ -70,6 +70,9 @@ CRON_SCHEDULE=
 
 In `api/tables` you will find the SQL scripts needed to be run to setup the database
 
+Ensure your hosting environment is configured for the correct timezone, all times are relative to the environments
+configured timezone
+
 ### Running locally
 
 CD into the `api` directory and run `make run`
@@ -84,3 +87,5 @@ Run `heroku stack:set container --app APP_NAME`
 
 You can then either add heroku as a remote to your project and push the code up, connect the heroku project to your
 GitHUb account for automated deployment.
+
+[How do I set the timezone on my dyno?](https://help.heroku.com/JZKJJ4NC/how-do-i-set-the-timezone-on-my-dyno)
