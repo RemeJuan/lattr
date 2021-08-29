@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/RemeJuan/lattr/domain"
+	"github.com/RemeJuan/lattr/domain/tweets"
 	"github.com/RemeJuan/lattr/utils/twitter"
 	"github.com/RemeJuan/lattr/utils/webhook"
 	"github.com/go-co-op/gocron"
@@ -35,17 +35,17 @@ func Scheduler() {
 }
 
 func getTweets() {
-	tweets, err := domain.TweetRepo.GetPending()
+	twts, err := tweets.TweetRepo.GetPending()
 
 	if err != nil {
 		fmt.Println("Scheduler:", err)
 		return
 	}
 
-	if ShouldPost(tweets[0]) {
+	if ShouldPost(twts[0]) {
 		var isDuplicate bool
 
-		tw := tweets[0]
+		tw := twts[0]
 		fmt.Println("Posting tweet:", tw.Message)
 		postErr := twitter.CreateTweet(tw.Message)
 
@@ -61,9 +61,9 @@ func getTweets() {
 				fmt.Println("Tweeted", isDuplicate, tw.Message)
 			}
 
-			tw.Status = domain.Posted
+			tw.Status = tweets.Posted
 			tw.Modified = time.Now().Local()
-			_, upErr := domain.TweetRepo.Update(&tw)
+			_, upErr := tweets.TweetRepo.Update(&tw)
 
 			if upErr != nil {
 				fmt.Println("error updating tweeted entry", upErr.Error(), upErr.Message())
@@ -72,7 +72,7 @@ func getTweets() {
 	}
 }
 
-func ShouldPost(tweet domain.Tweet) bool {
+func ShouldPost(tweet tweets.Tweet) bool {
 	now := time.Now().Local()
 
 	return now.After(tweet.PostTime.Local())

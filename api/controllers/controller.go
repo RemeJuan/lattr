@@ -5,23 +5,23 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/RemeJuan/lattr/domain"
-	"github.com/RemeJuan/lattr/services"
+	tweets2 "github.com/RemeJuan/lattr/domain/tweets"
+	"github.com/RemeJuan/lattr/services/tweets"
 	"github.com/RemeJuan/lattr/utils/error_utils"
 	"github.com/RemeJuan/lattr/utils/webhook"
 	"github.com/gin-gonic/gin"
 )
 
 func CreateTweet(c *gin.Context) {
-	var tweet domain.Tweet
+	var tweet tweets2.Tweet
 
 	if err := c.ShouldBindJSON(&tweet); err != nil {
 		theErr := error_utils.UnprocessableEntityError("invalid json body")
 		c.JSON(theErr.Status(), theErr)
 		return
 	}
-	tweet.Status = domain.Pending
-	msg, err := services.TweetService.Create(&tweet)
+	tweet.Status = tweets2.Pending
+	msg, err := tweets.TweetService.Create(&tweet)
 	if err != nil {
 		c.JSON(err.Status(), err)
 		return
@@ -39,7 +39,7 @@ func GetTweet(c *gin.Context) {
 		return
 	}
 
-	message, getErr := services.TweetService.Get(twId)
+	message, getErr := tweets.TweetService.Get(twId)
 	if getErr != nil {
 		c.JSON(getErr.Status(), getErr)
 		return
@@ -50,7 +50,7 @@ func GetTweet(c *gin.Context) {
 func GetTweets(c *gin.Context) {
 	userId := GetParam(c, "userId")
 
-	tweets, getErr := services.TweetService.GetAll(userId)
+	tweets, getErr := tweets.TweetService.GetAll(userId)
 	if getErr != nil {
 		c.JSON(getErr.Status(), getErr)
 		return
@@ -67,7 +67,7 @@ func UpdateTweet(c *gin.Context) {
 		c.JSON(theErr.Status(), theErr)
 		return
 	}
-	var tweet domain.Tweet
+	var tweet tweets2.Tweet
 	if err := c.ShouldBindJSON(&tweet); err != nil {
 		theErr := error_utils.UnprocessableEntityError("invalid json body")
 		c.JSON(theErr.Status(), theErr)
@@ -75,7 +75,7 @@ func UpdateTweet(c *gin.Context) {
 	}
 
 	tweet.Id = twId
-	msg, err := services.TweetService.Update(&tweet)
+	msg, err := tweets.TweetService.Update(&tweet)
 
 	if err != nil {
 		c.JSON(err.Status(), err)
@@ -95,7 +95,7 @@ func DeleteTweet(c *gin.Context) {
 		return
 	}
 
-	if err := services.TweetService.Delete(twId); err != nil {
+	if err := tweets.TweetService.Delete(twId); err != nil {
 		c.JSON(err.Status(), err)
 		return
 	}
@@ -104,7 +104,7 @@ func DeleteTweet(c *gin.Context) {
 }
 
 func WebHook(c *gin.Context) {
-	var tweet domain.Tweet
+	var tweet tweets2.Tweet
 	var tweetTime time.Time
 
 	if err := c.ShouldBindJSON(&tweet); err != nil {
@@ -113,7 +113,7 @@ func WebHook(c *gin.Context) {
 		return
 	}
 
-	last, lErr := services.TweetService.GetLast()
+	last, lErr := tweets.TweetService.GetLast()
 	if last == nil {
 		tweetTime = webhook.DetermineScheduleType(time.Now().Local())
 	} else {
@@ -126,8 +126,8 @@ func WebHook(c *gin.Context) {
 	}
 
 	tweet.PostTime = tweetTime
-	tweet.Status = domain.Scheduled
-	msg, err := services.TweetService.Create(&tweet)
+	tweet.Status = tweets2.Scheduled
+	msg, err := tweets.TweetService.Create(&tweet)
 	if err != nil {
 		c.JSON(err.Status(), err)
 		return
