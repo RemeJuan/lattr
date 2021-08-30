@@ -114,30 +114,6 @@ func TestTweetRepo_Create(t *testing.T) {
 		assert.Nil(t, got)
 		assert.Equal(t, expected, crErr.Message())
 	})
-
-	t.Run("Unable to save", func(t *testing.T) {
-		t.Skipf("Working out how to error LastInsertId")
-		db, mock, err := sqlmock.New()
-
-		if err != nil {
-			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-		}
-		defer db.Close()
-
-		s := InitTweetRepository(db)
-
-		const expected = "error when trying to save data: unknown error occurred"
-
-		const sqlQuery = "INSERT INTO tweets"
-		//sqlError := errors.New("unknown error occurred")
-		sqlResults := sqlmock.NewResult(0, 0)
-		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(userId, message, postTime, Pending, createdAt).WillReturnResult(sqlResults)
-
-		got, crErr := s.Create(request)
-
-		assert.Nil(t, got)
-		assert.Equal(t, expected, crErr.Message())
-	})
 }
 
 func TestTweetRepo_Get(t *testing.T) {
