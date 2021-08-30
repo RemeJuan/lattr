@@ -14,8 +14,8 @@ var (
 )
 
 var (
-	queryCreateToken = "INSERT INTO tokens(id, name, token, createdAt, Modified)  VALUES($1, $2, $3, $4, $5) RETURNING token;"
-	queryGetToken    = "SELECT * from tokens WHERE id=$1;"
+	queryCreateToken = "INSERT INTO tokens(name, token, createdAt, Modified)  VALUES($1, $2, $3, $4) RETURNING token;"
+	queryGetToken    = "SELECT name, token, createdAt, Modified FROM tokens WHERE id=$1;"
 	queryListTokens  = "SELECT * FROM tokens"
 	queryResetToken  = "UPDATE tokens SET token=$1 WHERE id=$2;"
 	queryDeleteToken = "DELETE FROM tokens where id=$1"
