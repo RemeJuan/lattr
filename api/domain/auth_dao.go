@@ -1,4 +1,4 @@
-package auth
+package domain
 
 import (
 	"database/sql"
@@ -155,10 +155,4 @@ func (tr *tokenRepo) Delete(id int64) error_utils.MessageErr {
 		return error_utils.InternalServerError(fmt.Sprintf("error when trying to delete record %s", err.Error()))
 	}
 	return nil
-}
-
-func checkError(err error) {
-	if err != nil {
-		panic(err)
-	}
 }

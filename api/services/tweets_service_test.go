@@ -1,4 +1,4 @@
-package tweets
+package services
 
 import (
 	"database/sql"
@@ -6,45 +6,45 @@ import (
 	"testing"
 	"time"
 
-	"github.com/RemeJuan/lattr/domain/tweets"
+	"github.com/RemeJuan/lattr/domain"
 	"github.com/RemeJuan/lattr/utils/error_utils"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
 	tm                     = time.Now().Local()
-	createTweetDomain      func(msg *tweets.Tweet) (*tweets.Tweet, error_utils.MessageErr)
-	getTweetDomain         func(messageId int64) (*tweets.Tweet, error_utils.MessageErr)
-	updateTweetDomain      func(msg *tweets.Tweet) (*tweets.Tweet, error_utils.MessageErr)
+	createTweetDomain      func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
+	getTweetDomain         func(messageId int64) (*domain.Tweet, error_utils.MessageErr)
+	updateTweetDomain      func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
 	deleteTweetDomain      func(messageId int64) error_utils.MessageErr
-	getAllTweetsDomain     func(userId string) ([]tweets.Tweet, error_utils.MessageErr)
-	getPendingTweetsDomain func() ([]tweets.Tweet, error_utils.MessageErr)
-	getLastTweetsDomain    func() (*tweets.Tweet, error_utils.MessageErr)
+	getAllTweetsDomain     func(userId string) ([]domain.Tweet, error_utils.MessageErr)
+	getPendingTweetsDomain func() ([]domain.Tweet, error_utils.MessageErr)
+	getLastTweetsDomain    func() (*domain.Tweet, error_utils.MessageErr)
 )
 
 type getDBMock struct {
-	tweets.TweetRepoInterface
+	domain.TweetRepoInterface
 }
 
-func (m *getDBMock) Create(msg *tweets.Tweet) (*tweets.Tweet, error_utils.MessageErr) {
+func (m *getDBMock) Create(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
 	return createTweetDomain(msg)
 }
-func (m *getDBMock) Get(messageId int64) (*tweets.Tweet, error_utils.MessageErr) {
+func (m *getDBMock) Get(messageId int64) (*domain.Tweet, error_utils.MessageErr) {
 	return getTweetDomain(messageId)
 }
-func (m *getDBMock) GetAll(userId string) ([]tweets.Tweet, error_utils.MessageErr) {
+func (m *getDBMock) GetAll(userId string) ([]domain.Tweet, error_utils.MessageErr) {
 	return getAllTweetsDomain(userId)
 }
-func (m *getDBMock) Update(msg *tweets.Tweet) (*tweets.Tweet, error_utils.MessageErr) {
+func (m *getDBMock) Update(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
 	return updateTweetDomain(msg)
 }
 func (m *getDBMock) Delete(messageId int64) error_utils.MessageErr {
 	return deleteTweetDomain(messageId)
 }
-func (m *getDBMock) GetPending() ([]tweets.Tweet, error_utils.MessageErr) {
+func (m *getDBMock) GetPending() ([]domain.Tweet, error_utils.MessageErr) {
 	return getPendingTweetsDomain()
 }
-func (m *getDBMock) GetLast() (*tweets.Tweet, error_utils.MessageErr) {
+func (m *getDBMock) GetLast() (*domain.Tweet, error_utils.MessageErr) {
 	return getLastTweetsDomain()
 }
 func (m *getDBMock) Initialize() *sql.DB {
@@ -58,12 +58,12 @@ func TestTweetService_Create(t *testing.T) {
 	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
+		domain.TweetRepo = &getDBMock{}
 
 		const message = "the message"
 
-		createTweetDomain = func(msg *tweets.Tweet) (*tweets.Tweet, error_utils.MessageErr) {
-			return &tweets.Tweet{
+		createTweetDomain = func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:        recordId,
 				Message:   message,
 				PostTime:  postTime,
@@ -71,7 +71,7 @@ func TestTweetService_Create(t *testing.T) {
 			}, nil
 		}
 
-		request := &tweets.Tweet{
+		request := &domain.Tweet{
 			Message:   message,
 			PostTime:  postTime,
 			CreatedAt: tm,
@@ -87,12 +87,12 @@ func TestTweetService_Create(t *testing.T) {
 	})
 
 	t.Run("Empty body", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
+		domain.TweetRepo = &getDBMock{}
 
 		const message = ""
 
-		createTweetDomain = func(msg *tweets.Tweet) (*tweets.Tweet, error_utils.MessageErr) {
-			return &tweets.Tweet{
+		createTweetDomain = func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:        recordId,
 				Message:   message,
 				PostTime:  postTime,
@@ -100,7 +100,7 @@ func TestTweetService_Create(t *testing.T) {
 			}, nil
 		}
 
-		request := &tweets.Tweet{
+		request := &domain.Tweet{
 			Message:   message,
 			PostTime:  postTime,
 			CreatedAt: tm,
@@ -121,12 +121,12 @@ func TestTweetService_Get(t *testing.T) {
 	var message = ""
 
 	t.Run("Success", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
+		domain.TweetRepo = &getDBMock{}
 
 		message = "the message"
 
-		getTweetDomain = func(messageId int64) (*tweets.Tweet, error_utils.MessageErr) {
-			return &tweets.Tweet{
+		getTweetDomain = func(messageId int64) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:        recordId,
 				Message:   message,
 				PostTime:  postTime,
@@ -145,9 +145,9 @@ func TestTweetService_Get(t *testing.T) {
 	})
 
 	t.Run("Not Found", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
+		domain.TweetRepo = &getDBMock{}
 
-		getTweetDomain = func(messageId int64) (*tweets.Tweet, error_utils.MessageErr) {
+		getTweetDomain = func(messageId int64) (*domain.Tweet, error_utils.MessageErr) {
 			return nil, error_utils.NotFoundError("the id is not found")
 		}
 
@@ -166,12 +166,12 @@ func TestTweetService_GetAll(t *testing.T) {
 	var message = ""
 
 	t.Run("Success", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
+		domain.TweetRepo = &getDBMock{}
 
 		message = "the message"
 
-		getAllTweetsDomain = func(userId string) ([]tweets.Tweet, error_utils.MessageErr) {
-			return []tweets.Tweet{
+		getAllTweetsDomain = func(userId string) ([]domain.Tweet, error_utils.MessageErr) {
+			return []domain.Tweet{
 				{
 					Id:        01,
 					Message:   message,
@@ -208,9 +208,9 @@ func TestTweetService_GetAll(t *testing.T) {
 	})
 
 	t.Run("Not Found", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
+		domain.TweetRepo = &getDBMock{}
 
-		getAllTweetsDomain = func(userId string) ([]tweets.Tweet, error_utils.MessageErr) {
+		getAllTweetsDomain = func(userId string) ([]domain.Tweet, error_utils.MessageErr) {
 			return nil, error_utils.NotFoundError("error getting messages")
 		}
 
@@ -230,12 +230,12 @@ func TestTweetService_Update(t *testing.T) {
 	updatedTime, _ := time.Parse(layout, "2021-07-13 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
+		domain.TweetRepo = &getDBMock{}
 
 		const message = "the message"
 
-		getTweetDomain = func(messageId int64) (*tweets.Tweet, error_utils.MessageErr) {
-			return &tweets.Tweet{
+		getTweetDomain = func(messageId int64) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:        recordId,
 				Message:   message,
 				PostTime:  postTime,
@@ -243,8 +243,8 @@ func TestTweetService_Update(t *testing.T) {
 			}, nil
 		}
 
-		updateTweetDomain = func(msg *tweets.Tweet) (*tweets.Tweet, error_utils.MessageErr) {
-			return &tweets.Tweet{
+		updateTweetDomain = func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:        recordId,
 				Message:   message,
 				PostTime:  updatedTime,
@@ -252,7 +252,7 @@ func TestTweetService_Update(t *testing.T) {
 			}, nil
 		}
 
-		request := &tweets.Tweet{
+		request := &domain.Tweet{
 			Message:   message,
 			PostTime:  updatedTime,
 			CreatedAt: tm,
@@ -268,13 +268,13 @@ func TestTweetService_Update(t *testing.T) {
 	})
 
 	t.Run("Empty body", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
+		domain.TweetRepo = &getDBMock{}
 
 		const message = "the message"
 		const updatedMessage = ""
 
-		getTweetDomain = func(messageId int64) (*tweets.Tweet, error_utils.MessageErr) {
-			return &tweets.Tweet{
+		getTweetDomain = func(messageId int64) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:        recordId,
 				Message:   message,
 				PostTime:  postTime,
@@ -282,8 +282,8 @@ func TestTweetService_Update(t *testing.T) {
 			}, nil
 		}
 
-		updateTweetDomain = func(msg *tweets.Tweet) (*tweets.Tweet, error_utils.MessageErr) {
-			return &tweets.Tweet{
+		updateTweetDomain = func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:        recordId,
 				Message:   updatedMessage,
 				PostTime:  updatedTime,
@@ -291,7 +291,7 @@ func TestTweetService_Update(t *testing.T) {
 			}, nil
 		}
 
-		request := &tweets.Tweet{
+		request := &domain.Tweet{
 			Message:   updatedMessage,
 			PostTime:  updatedTime,
 			CreatedAt: tm,
@@ -312,12 +312,12 @@ func TestTweetService_Delete(t *testing.T) {
 	var message = ""
 
 	t.Run("Success", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
+		domain.TweetRepo = &getDBMock{}
 
 		message = "the message"
 
-		getTweetDomain = func(messageId int64) (*tweets.Tweet, error_utils.MessageErr) {
-			return &tweets.Tweet{
+		getTweetDomain = func(messageId int64) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:        recordId,
 				Message:   message,
 				PostTime:  postTime,
@@ -335,8 +335,8 @@ func TestTweetService_Delete(t *testing.T) {
 	})
 
 	t.Run("Not found", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
-		getTweetDomain = func(messageId int64) (*tweets.Tweet, error_utils.MessageErr) {
+		domain.TweetRepo = &getDBMock{}
+		getTweetDomain = func(messageId int64) (*domain.Tweet, error_utils.MessageErr) {
 			return nil, error_utils.NotFoundError("Something went wrong getting message")
 		}
 		err := TweetService.Delete(1)
@@ -347,10 +347,10 @@ func TestTweetService_Delete(t *testing.T) {
 	})
 
 	t.Run("Unable to delete", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
+		domain.TweetRepo = &getDBMock{}
 
-		getTweetDomain = func(messageId int64) (*tweets.Tweet, error_utils.MessageErr) {
-			return &tweets.Tweet{
+		getTweetDomain = func(messageId int64) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:       1,
 				Message:  message,
 				PostTime: postTime,
@@ -376,12 +376,12 @@ func TestTweetService_GetPending(t *testing.T) {
 	var message = ""
 
 	t.Run("Success", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
+		domain.TweetRepo = &getDBMock{}
 
 		message = "the message"
 
-		getPendingTweetsDomain = func() ([]tweets.Tweet, error_utils.MessageErr) {
-			return []tweets.Tweet{
+		getPendingTweetsDomain = func() ([]domain.Tweet, error_utils.MessageErr) {
+			return []domain.Tweet{
 				{
 					Id:        01,
 					Message:   message,
@@ -418,9 +418,9 @@ func TestTweetService_GetPending(t *testing.T) {
 	})
 
 	t.Run("Not Found", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
+		domain.TweetRepo = &getDBMock{}
 
-		getPendingTweetsDomain = func() ([]tweets.Tweet, error_utils.MessageErr) {
+		getPendingTweetsDomain = func() ([]domain.Tweet, error_utils.MessageErr) {
 			return nil, error_utils.NotFoundError("error getting messages")
 		}
 
@@ -438,10 +438,10 @@ func TestTweetService_GetLast(t *testing.T) {
 	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
+		domain.TweetRepo = &getDBMock{}
 
-		getLastTweetsDomain = func() (*tweets.Tweet, error_utils.MessageErr) {
-			return &tweets.Tweet{
+		getLastTweetsDomain = func() (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				PostTime: postTime,
 			}, nil
 		}
@@ -456,9 +456,9 @@ func TestTweetService_GetLast(t *testing.T) {
 	})
 
 	t.Run("Not Found", func(t *testing.T) {
-		tweets.TweetRepo = &getDBMock{}
+		domain.TweetRepo = &getDBMock{}
 
-		getLastTweetsDomain = func() (*tweets.Tweet, error_utils.MessageErr) {
+		getLastTweetsDomain = func() (*domain.Tweet, error_utils.MessageErr) {
 			return nil, error_utils.NotFoundError("error getting messages")
 		}
 

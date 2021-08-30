@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/RemeJuan/lattr/domain/tweets"
+	"github.com/RemeJuan/lattr/domain"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -42,7 +42,7 @@ func TestFixedScheduler(t *testing.T) {
 	})
 
 	t.Run("Returns next days date", func(t *testing.T) {
-		tweet := &tweets.Tweet{
+		tweet := &domain.Tweet{
 			PostTime: time.Date(2021, 8, 20, 15, 31, 0, 0, time.Local),
 		}
 
@@ -54,7 +54,7 @@ func TestFixedScheduler(t *testing.T) {
 	})
 
 	t.Run("Last day of month", func(t *testing.T) {
-		tweet := &tweets.Tweet{
+		tweet := &domain.Tweet{
 			PostTime: time.Date(2021, 8, 31, 15, 31, 0, 0, time.Local),
 		}
 
@@ -86,7 +86,7 @@ func TestRandomMinuteScheduler(t *testing.T) {
 	})
 
 	t.Run("Returns next days date", func(t *testing.T) {
-		tweet := &tweets.Tweet{
+		tweet := &domain.Tweet{
 			PostTime: time.Date(2021, 8, 20, 15, 30, 0, 0, time.Local),
 		}
 
@@ -98,7 +98,7 @@ func TestRandomMinuteScheduler(t *testing.T) {
 	})
 
 	t.Run("Last day of month", func(t *testing.T) {
-		tweet := &tweets.Tweet{
+		tweet := &domain.Tweet{
 			PostTime: time.Date(2021, 8, 31, 15, 30, 0, 0, time.Local),
 		}
 
@@ -116,7 +116,7 @@ func TestIntervalScheduler(t *testing.T) {
 	_ = os.Setenv("INTERVALS", "2")
 
 	t.Run("Success", func(t *testing.T) {
-		tweet := &tweets.Tweet{
+		tweet := &domain.Tweet{
 			PostTime: time.Date(2021, 8, 20, 14, 30, 0, 0, time.Local),
 		}
 
@@ -128,7 +128,7 @@ func TestIntervalScheduler(t *testing.T) {
 	})
 
 	t.Run("Returns next day", func(t *testing.T) {
-		tweet := &tweets.Tweet{
+		tweet := &domain.Tweet{
 			PostTime: time.Date(2021, 8, 20, 23, 30, 0, 0, time.Local),
 		}
 
@@ -140,7 +140,7 @@ func TestIntervalScheduler(t *testing.T) {
 	})
 
 	t.Run("Last day of month", func(t *testing.T) {
-		tweet := &tweets.Tweet{
+		tweet := &domain.Tweet{
 			PostTime: time.Date(2021, 8, 31, 23, 30, 0, 0, time.Local),
 		}
 

@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	tweets2 "github.com/RemeJuan/lattr/domain/tweets"
-	"github.com/RemeJuan/lattr/services/tweets"
+	"github.com/RemeJuan/lattr/domain"
+	"github.com/RemeJuan/lattr/services"
 	"github.com/RemeJuan/lattr/utils/error_utils"
 	"github.com/RemeJuan/lattr/utils/webhook"
 	"github.com/gin-gonic/gin"
@@ -20,31 +20,31 @@ import (
 )
 
 var (
-	createTweetService     func(message *tweets2.Tweet) (*tweets2.Tweet, error_utils.MessageErr)
-	getTweetService        func(msgId int64) (*tweets2.Tweet, error_utils.MessageErr)
-	updateTweetService     func(tweet *tweets2.Tweet) (*tweets2.Tweet, error_utils.MessageErr)
+	createTweetService     func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
+	getTweetService        func(msgId int64) (*domain.Tweet, error_utils.MessageErr)
+	updateTweetService     func(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr)
 	deleteTweetService     func(msgId int64) error_utils.MessageErr
-	getAllTweetService     func(userId string) ([]tweets2.Tweet, error_utils.MessageErr)
-	getPendingTweetService func() ([]tweets2.Tweet, error_utils.MessageErr)
-	getLastTweet           func() (*tweets2.Tweet, error_utils.MessageErr)
+	getAllTweetService     func(userId string) ([]domain.Tweet, error_utils.MessageErr)
+	getPendingTweetService func() ([]domain.Tweet, error_utils.MessageErr)
+	getLastTweet           func() (*domain.Tweet, error_utils.MessageErr)
 )
 
 type serviceMock struct {
 }
 
-func (sm *serviceMock) Create(tweet *tweets2.Tweet) (*tweets2.Tweet, error_utils.MessageErr) {
+func (sm *serviceMock) Create(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
 	return createTweetService(tweet)
 }
 
-func (sm *serviceMock) Get(id int64) (*tweets2.Tweet, error_utils.MessageErr) {
+func (sm *serviceMock) Get(id int64) (*domain.Tweet, error_utils.MessageErr) {
 	return getTweetService(id)
 }
 
-func (sm *serviceMock) GetAll(userId string) ([]tweets2.Tweet, error_utils.MessageErr) {
+func (sm *serviceMock) GetAll(userId string) ([]domain.Tweet, error_utils.MessageErr) {
 	return getAllTweetService(userId)
 }
 
-func (sm *serviceMock) Update(tweet *tweets2.Tweet) (*tweets2.Tweet, error_utils.MessageErr) {
+func (sm *serviceMock) Update(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
 	return updateTweetService(tweet)
 }
 
@@ -52,11 +52,11 @@ func (sm *serviceMock) Delete(id int64) error_utils.MessageErr {
 	return deleteTweetService(id)
 }
 
-func (sm *serviceMock) GetPending() ([]tweets2.Tweet, error_utils.MessageErr) {
+func (sm *serviceMock) GetPending() ([]domain.Tweet, error_utils.MessageErr) {
 	return getPendingTweetService()
 }
 
-func (sm *serviceMock) GetLast() (*tweets2.Tweet, error_utils.MessageErr) {
+func (sm *serviceMock) GetLast() (*domain.Tweet, error_utils.MessageErr) {
 	return getLastTweet()
 }
 
@@ -70,12 +70,12 @@ func TestCreateTweet(t *testing.T) {
 	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
 		const msg = "the message"
 
-		createTweetService = func(message *tweets2.Tweet) (*tweets2.Tweet, error_utils.MessageErr) {
-			return &tweets2.Tweet{
+		createTweetService = func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:       recordId,
 				Message:  msg,
 				PostTime: postTime,
@@ -91,7 +91,7 @@ func TestCreateTweet(t *testing.T) {
 		r.POST(basePath, CreateTweet)
 		r.ServeHTTP(rr, req)
 
-		var tweet tweets2.Tweet
+		var tweet domain.Tweet
 		err = json.Unmarshal(rr.Body.Bytes(), &tweet)
 		assert.Nil(t, err)
 		assert.NotNil(t, tweet)
@@ -121,9 +121,9 @@ func TestCreateTweet(t *testing.T) {
 	})
 
 	t.Run("Create Error", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
-		createTweetService = func(message *tweets2.Tweet) (*tweets2.Tweet, error_utils.MessageErr) {
+		createTweetService = func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
 			return nil, error_utils.UnprocessableEntityError("Body cannot be empty")
 		}
 		jsonBody := `{}`
@@ -151,16 +151,16 @@ func TestGetTweet(t *testing.T) {
 	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
 		const message = "the message"
 
-		getTweetService = func(msgId int64) (*tweets2.Tweet, error_utils.MessageErr) {
-			return &tweets2.Tweet{
+		getTweetService = func(msgId int64) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:       recordId,
 				Message:  message,
 				PostTime: postTime,
-				Status:   tweets2.Pending,
+				Status:   domain.Pending,
 			}, nil
 		}
 
@@ -171,7 +171,7 @@ func TestGetTweet(t *testing.T) {
 		r.GET("/tweets/:id", GetTweet)
 		r.ServeHTTP(rr, req)
 
-		var tweet tweets2.Tweet
+		var tweet domain.Tweet
 		err := json.Unmarshal(rr.Body.Bytes(), &tweet)
 
 		assert.Nil(t, err)
@@ -180,11 +180,11 @@ func TestGetTweet(t *testing.T) {
 		assert.EqualValues(t, recordId, tweet.Id)
 		assert.EqualValues(t, message, tweet.Message)
 		assert.EqualValues(t, postTime, tweet.PostTime)
-		assert.EqualValues(t, tweets2.Pending, tweet.Status)
+		assert.EqualValues(t, domain.Pending, tweet.Status)
 	})
 
 	t.Run("Cannot parse ID", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
 		const invalidID = "red"
 
@@ -203,9 +203,9 @@ func TestGetTweet(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
-		getTweetService = func(msgId int64) (*tweets2.Tweet, error_utils.MessageErr) {
+		getTweetService = func(msgId int64) (*domain.Tweet, error_utils.MessageErr) {
 			return nil, error_utils.NotFoundError("unable to find item")
 		}
 
@@ -231,24 +231,24 @@ func TestGetTweets(t *testing.T) {
 	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
 		const message = "the message"
 		const userId = "test"
 
-		getAllTweetService = func(userId string) ([]tweets2.Tweet, error_utils.MessageErr) {
-			return []tweets2.Tweet{
+		getAllTweetService = func(userId string) ([]domain.Tweet, error_utils.MessageErr) {
+			return []domain.Tweet{
 				{
 					Id:       recordId,
 					Message:  message,
 					PostTime: postTime,
-					Status:   tweets2.Pending,
+					Status:   domain.Pending,
 				},
 				{
 					Id:       recordId,
 					Message:  message,
 					PostTime: postTime,
-					Status:   tweets2.Pending,
+					Status:   domain.Pending,
 				},
 			}, nil
 		}
@@ -260,7 +260,7 @@ func TestGetTweets(t *testing.T) {
 		r.GET("/tweets/all/:userId", GetTweets)
 		r.ServeHTTP(rr, req)
 
-		var tweets []tweets2.Tweet
+		var tweets []domain.Tweet
 		err := json.Unmarshal(rr.Body.Bytes(), &tweets)
 
 		assert.Nil(t, err)
@@ -269,20 +269,20 @@ func TestGetTweets(t *testing.T) {
 		assert.EqualValues(t, recordId, tweets[0].Id)
 		assert.EqualValues(t, message, tweets[0].Message)
 		assert.EqualValues(t, postTime, tweets[0].PostTime)
-		assert.EqualValues(t, tweets2.Pending, tweets[0].Status)
+		assert.EqualValues(t, domain.Pending, tweets[0].Status)
 
 		assert.EqualValues(t, recordId, tweets[1].Id)
 		assert.EqualValues(t, message, tweets[1].Message)
 		assert.EqualValues(t, postTime, tweets[1].PostTime)
-		assert.EqualValues(t, tweets2.Pending, tweets[1].Status)
+		assert.EqualValues(t, domain.Pending, tweets[1].Status)
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
 		const userId = "test"
 
-		getAllTweetService = func(userId string) ([]tweets2.Tweet, error_utils.MessageErr) {
+		getAllTweetService = func(userId string) ([]domain.Tweet, error_utils.MessageErr) {
 			return nil, error_utils.NotFoundError("No results")
 		}
 
@@ -310,16 +310,16 @@ func TestUpdateTweet(t *testing.T) {
 	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
 		const message = "different message"
 
-		updateTweetService = func(tweet *tweets2.Tweet) (*tweets2.Tweet, error_utils.MessageErr) {
-			return &tweets2.Tweet{
+		updateTweetService = func(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:       recordId,
 				Message:  message,
 				PostTime: postTime,
-				Status:   tweets2.Pending,
+				Status:   domain.Pending,
 			}, nil
 		}
 		inputJson := `{"message": "different message"}`
@@ -330,7 +330,7 @@ func TestUpdateTweet(t *testing.T) {
 		r.PUT("/tweets/:id", UpdateTweet)
 		r.ServeHTTP(rr, req)
 
-		var tweet tweets2.Tweet
+		var tweet domain.Tweet
 		err := json.Unmarshal(rr.Body.Bytes(), &tweet)
 
 		assert.Nil(t, err)
@@ -339,11 +339,11 @@ func TestUpdateTweet(t *testing.T) {
 		assert.EqualValues(t, recordId, tweet.Id)
 		assert.EqualValues(t, message, tweet.Message)
 		assert.EqualValues(t, postTime, tweet.PostTime)
-		assert.EqualValues(t, tweets2.Pending, tweet.Status)
+		assert.EqualValues(t, domain.Pending, tweet.Status)
 	})
 
 	t.Run("Cannot parse ID", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
 		const invalidID = "red"
 
@@ -363,7 +363,7 @@ func TestUpdateTweet(t *testing.T) {
 	})
 
 	t.Run("Invalid JSON", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
 		inputJson := ""
 		r := gin.Default()
@@ -381,9 +381,9 @@ func TestUpdateTweet(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
-		updateTweetService = func(tweet *tweets2.Tweet) (*tweets2.Tweet, error_utils.MessageErr) {
+		updateTweetService = func(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
 			return nil, error_utils.NotFoundError("unable to find item")
 		}
 
@@ -409,7 +409,7 @@ func TestDeleteTweet(t *testing.T) {
 	const recordId int64 = 1
 
 	t.Run("Success", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
 		deleteTweetService = func(id int64) error_utils.MessageErr {
 			return nil
@@ -431,7 +431,7 @@ func TestDeleteTweet(t *testing.T) {
 	})
 
 	t.Run("Unable to parse ID", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
 		r := gin.Default()
 		path := fmt.Sprintf("%s/%v", basePath, "red")
@@ -450,7 +450,7 @@ func TestDeleteTweet(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
 		deleteTweetService = func(id int64) error_utils.MessageErr {
 			return error_utils.InternalServerError("Unable to delete entry")
@@ -486,20 +486,20 @@ func TestWebHook(t *testing.T) {
 	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("Success", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
 		const msg = "the message"
 
-		getLastTweet = func() (*tweets2.Tweet, error_utils.MessageErr) {
-			return &tweets2.Tweet{
+		getLastTweet = func() (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:       recordId,
 				Message:  msg,
 				PostTime: postTime,
 			}, nil
 		}
 
-		createTweetService = func(message *tweets2.Tweet) (*tweets2.Tweet, error_utils.MessageErr) {
-			return &tweets2.Tweet{
+		createTweetService = func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:       recordId,
 				Message:  msg,
 				PostTime: postTime,
@@ -516,7 +516,7 @@ func TestWebHook(t *testing.T) {
 		r.POST(basePath, WebHook)
 		r.ServeHTTP(rr, req)
 
-		var tweet tweets2.Tweet
+		var tweet domain.Tweet
 		err = json.Unmarshal(rr.Body.Bytes(), &tweet)
 		assert.Nil(t, err)
 		assert.NotNil(t, tweet)
@@ -546,9 +546,9 @@ func TestWebHook(t *testing.T) {
 	})
 
 	t.Run("GetLast Error", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
-		getLastTweet = func() (*tweets2.Tweet, error_utils.MessageErr) {
+		getLastTweet = func() (*domain.Tweet, error_utils.MessageErr) {
 			return nil, error_utils.UnprocessableEntityError("No tweets found")
 		}
 
@@ -570,19 +570,19 @@ func TestWebHook(t *testing.T) {
 	})
 
 	t.Run("Create Error", func(t *testing.T) {
-		tweets.TweetService = &serviceMock{}
+		services.TweetService = &serviceMock{}
 
 		const msg = "the message"
 
-		getLastTweet = func() (*tweets2.Tweet, error_utils.MessageErr) {
-			return &tweets2.Tweet{
+		getLastTweet = func() (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
 				Id:       recordId,
 				Message:  msg,
 				PostTime: postTime,
 			}, nil
 		}
 
-		createTweetService = func(message *tweets2.Tweet) (*tweets2.Tweet, error_utils.MessageErr) {
+		createTweetService = func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
 			return nil, error_utils.UnprocessableEntityError("Body cannot be empty")
 		}
 		jsonBody := `{}`

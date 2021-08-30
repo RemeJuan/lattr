@@ -1,4 +1,4 @@
-package tweets
+package domain
 
 import (
 	"strings"
