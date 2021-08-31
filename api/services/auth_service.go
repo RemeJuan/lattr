@@ -76,8 +76,8 @@ func (as authService) Delete(i int64) error_utils.MessageErr {
 	if err != nil {
 		return err
 	}
-	delErr := domain.TokenRepo.Delete(tk.Id)
-	if delErr != nil {
+	err = domain.TokenRepo.Delete(tk.Id)
+	if err != nil {
 		return err
 	}
 
