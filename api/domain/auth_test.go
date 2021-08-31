@@ -293,9 +293,160 @@ func TestTokenRepo_List(t *testing.T) {
 }
 
 func TestTokenRepo_Reset(t *testing.T) {
-	t.Skipf("To DO")
+	request := &Token{
+		Id:       mockTokenId,
+		Token:    mockToken,
+		Modified: mt,
+	}
+
+	t.Run("Success", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTokenRepository(db)
+
+		expected := &Token{
+			Id:       mockTokenId,
+			Token:    mockToken,
+			Modified: mt,
+		}
+		const sqlQuery = "UPDATE tokens"
+		sqlReturn := sqlmock.NewResult(0, 1)
+		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(mockTokenId, mockToken, mt).WillReturnResult(sqlReturn)
+
+		result, crErr := s.Reset(request)
+
+		assert.Nil(t, crErr)
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("Invalid SQL Query", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTokenRepository(db)
+
+		const expected = "error when trying to prepare update: error in sql query statement"
+
+		const sqlQuery = "UPDATE tokens"
+		sqlReturn := errors.New("error in sql query statement")
+		mock.ExpectPrepare(sqlQuery).WillReturnError(sqlReturn)
+
+		result, crErr := s.Reset(request)
+
+		assert.Nil(t, result)
+		assert.Equal(t, expected, crErr.Message())
+	})
+
+	t.Run("Invalid Query Id", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTokenRepository(db)
+
+		const expected = "error when trying to save data: invalid update id"
+
+		const sqlQuery = "UPDATE tokens"
+		sqlReturn := errors.New("invalid update id")
+		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(mockTokenId, mockToken, mt).WillReturnError(sqlReturn)
+
+		result, crErr := s.Reset(request)
+
+		assert.Nil(t, result)
+		assert.Equal(t, expected, crErr.Message())
+	})
+
+	t.Run("Update failed", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTokenRepository(db)
+
+		const expected = "error when trying to save data: update failed"
+		const sqlQuery = "UPDATE tokens"
+		sqlReturn := errors.New("update failed")
+		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(mockTokenId, mockToken, mt).WillReturnError(sqlReturn)
+
+		result, crErr := s.Reset(request)
+
+		assert.Nil(t, result)
+		assert.Equal(t, expected, crErr.Message())
+	})
 }
 
 func TestTokenRepo_Delete(t *testing.T) {
-	t.Skipf("To DO")
+	t.Run("Success", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTokenRepository(db)
+
+		const sqlQuery = "DELETE FROM tokens"
+		sqlReturn := sqlmock.NewResult(0, 1)
+		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(mockTokenId).WillReturnResult(sqlReturn)
+
+		delErr := s.Delete(mockTokenId)
+
+		assert.Nil(t, delErr)
+	})
+
+	t.Run("Invalid Id/Not Found Id", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTokenRepository(db)
+
+		const expected = "error when trying to delete record id not found or invalid"
+		const sqlQuery = "DELETE FROM tokens"
+		sqlReturn := errors.New("id not found or invalid")
+		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(mockTokenId).WillReturnError(sqlReturn)
+
+		delErr := s.Delete(mockTokenId)
+
+		assert.Equal(t, expected, delErr.Message())
+	})
+
+	t.Run("Invalid SQL query", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+
+		if err != nil {
+			t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		}
+		defer db.Close()
+
+		s := InitTokenRepository(db)
+
+		const expected = "error when trying to delete record invalid query"
+		const sqlQuery = "DELETE FROM tokens"
+		sqlReturn := errors.New("invalid query")
+		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(mockTokenId).WillReturnError(sqlReturn)
+
+		delErr := s.Delete(mockTokenId)
+
+		assert.Equal(t, expected, delErr.Message())
+	})
 }
