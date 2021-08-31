@@ -85,7 +85,7 @@ func TestTweetService_Create(t *testing.T) {
 		assert.EqualValues(t, tm, msg.CreatedAt)
 	})
 
-	t.Run("Empty body", func(t *testing.T) {
+	t.Run("Validation failed", func(t *testing.T) {
 		domain.TweetRepo = &tweetDbMock{}
 
 		const message = ""
@@ -111,6 +111,29 @@ func TestTweetService_Create(t *testing.T) {
 		assert.EqualValues(t, http.StatusUnprocessableEntity, err.Status())
 		assert.EqualValues(t, "invalid_request", err.Error())
 		assert.EqualValues(t, "Body cannot be empty", err.Message())
+	})
+
+	t.Run("Create failed", func(t *testing.T) {
+		domain.TweetRepo = &tweetDbMock{}
+
+		const message = "message"
+
+		createTweetDomain = func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
+			return nil, error_utils.InternalServerError("Unknown error occurred")
+		}
+
+		request := &domain.Tweet{
+			Message:   message,
+			PostTime:  postTime,
+			CreatedAt: tm,
+		}
+		msg, err := TweetService.Create(request)
+
+		assert.Nil(t, msg)
+		assert.NotNil(t, err)
+		assert.EqualValues(t, http.StatusInternalServerError, err.Status())
+		assert.EqualValues(t, "server_error", err.Error())
+		assert.EqualValues(t, "Unknown error occurred", err.Message())
 	})
 }
 
@@ -266,7 +289,7 @@ func TestTweetService_Update(t *testing.T) {
 		assert.EqualValues(t, tm, msg.CreatedAt)
 	})
 
-	t.Run("Empty body", func(t *testing.T) {
+	t.Run("Validation failed", func(t *testing.T) {
 		domain.TweetRepo = &tweetDbMock{}
 
 		const message = "the message"
@@ -302,6 +325,63 @@ func TestTweetService_Update(t *testing.T) {
 		assert.EqualValues(t, http.StatusUnprocessableEntity, err.Status())
 		assert.EqualValues(t, "invalid_request", err.Error())
 		assert.EqualValues(t, "Body cannot be empty", err.Message())
+	})
+
+	t.Run("Not found", func(t *testing.T) {
+		domain.TweetRepo = &tweetDbMock{}
+
+		const updatedMessage = "message"
+		const errMessage = "No matching record found"
+
+		getTweetDomain = func(messageId int64) (*domain.Tweet, error_utils.MessageErr) {
+			return nil, error_utils.NotFoundError(errMessage)
+		}
+
+		request := &domain.Tweet{
+			Message:   updatedMessage,
+			PostTime:  updatedTime,
+			CreatedAt: tm,
+		}
+		msg, err := TweetService.Update(request)
+
+		assert.Nil(t, msg)
+		assert.NotNil(t, err)
+		assert.EqualValues(t, http.StatusNotFound, err.Status())
+		assert.EqualValues(t, "not_found", err.Error())
+		assert.EqualValues(t, errMessage, err.Message())
+	})
+
+	t.Run("Update failed", func(t *testing.T) {
+		domain.TweetRepo = &tweetDbMock{}
+
+		const message = "the message"
+		const errMessage = "Unable to reset token"
+
+		getTweetDomain = func(messageId int64) (*domain.Tweet, error_utils.MessageErr) {
+			return &domain.Tweet{
+				Id:        recordId,
+				Message:   message,
+				PostTime:  postTime,
+				CreatedAt: tm,
+			}, nil
+		}
+
+		updateTweetDomain = func(msg *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
+			return nil, error_utils.InternalServerError(errMessage)
+		}
+
+		request := &domain.Tweet{
+			Message:   message,
+			PostTime:  updatedTime,
+			CreatedAt: tm,
+		}
+		msg, err := TweetService.Update(request)
+
+		assert.Nil(t, msg)
+		assert.NotNil(t, err)
+		assert.EqualValues(t, http.StatusInternalServerError, err.Status())
+		assert.EqualValues(t, "server_error", err.Error())
+		assert.EqualValues(t, errMessage, err.Message())
 	})
 }
 
