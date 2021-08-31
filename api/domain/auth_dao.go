@@ -17,7 +17,7 @@ var (
 	queryCreateToken = "INSERT INTO tokens(name, token, createdAt, Modified)  VALUES($1, $2, $3, $4) RETURNING token;"
 	queryGetToken    = "SELECT name, token, createdAt, Modified FROM tokens WHERE id=$1;"
 	queryListTokens  = "SELECT * FROM tokens"
-	queryResetToken  = "UPDATE tokens SET token=$1 WHERE id=$2;"
+	queryResetToken  = "UPDATE tokens SET token=$2, modified=$3 WHERE id=$1;"
 	queryDeleteToken = "DELETE FROM tokens where id=$1"
 )
 
@@ -137,7 +137,7 @@ func (tr *tokenRepo) Reset(token *Token) (*Token, error_utils.MessageErr) {
 	}
 	defer stmt.Close()
 
-	_, updateErr := stmt.Exec(token.Name, token.Token, token.CreatedAt, token.Modified, token.Id)
+	_, updateErr := stmt.Exec(token.Id, token.Token, token.Modified)
 	if updateErr != nil {
 		return nil, error_formats.ParseError(updateErr)
 	}
