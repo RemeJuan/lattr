@@ -532,10 +532,10 @@ func TestTweetRepo_Delete(t *testing.T) {
 
 		s := InitTweetRepository(db)
 
-		expected := "error when trying to delete record: id not found or invalid"
+		expected := "error when trying to delete record: invalid query"
 
 		const sqlQuery = "DELETE FROM tweets"
-		sqlResult := errors.New("id not found or invalid")
+		sqlResult := errors.New("invalid query")
 		mock.ExpectPrepare(sqlQuery).WillReturnError(sqlResult)
 
 		delErr := s.Delete(recordId)
