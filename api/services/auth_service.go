@@ -1,14 +1,18 @@
 package services
 
 import (
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/RemeJuan/lattr/domain"
 	"github.com/RemeJuan/lattr/utils/error_utils"
+	"github.com/dgrijalva/jwt-go"
 )
 
 var (
 	AuthService authServiceInterface = &authService{}
+	currentTime                      = time.Now().Local()
 )
 
 type authService struct{}
@@ -82,4 +86,30 @@ func (as authService) Delete(i int64) error_utils.MessageErr {
 	}
 
 	return nil
+}
+
+func GenerateToken(name string, validity int) (string, error) {
+	appKey := os.Getenv("JWT_SECRET")
+	jvh := os.Getenv("JWT_VALIDITY_HOURS")
+	dur := validity
+
+	if validity == 0 {
+		t, err := strconv.ParseInt(jvh, 10, 0)
+
+		if err != nil {
+			dur = 1
+		} else {
+			dur = int(t)
+		}
+	}
+
+	claims := jwt.MapClaims{}
+
+	claims["user"] = name
+	claims["exp"] = currentTime.Add(time.Hour * time.Duration(dur)).Unix()
+	claims["iat"] = currentTime.Unix()
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString([]byte(appKey))
 }

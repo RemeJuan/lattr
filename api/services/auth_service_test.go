@@ -2,7 +2,9 @@ package services
 
 import (
 	"net/http"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/RemeJuan/lattr/domain"
 	"github.com/RemeJuan/lattr/utils/error_utils"
@@ -398,5 +400,48 @@ func TestAuthService_Delete(t *testing.T) {
 		assert.EqualValues(t, http.StatusInternalServerError, err.Status())
 		assert.EqualValues(t, "server_error", err.Error())
 		assert.EqualValues(t, errMessage, err.Message())
+	})
+}
+
+func TestGenerateToken(t *testing.T) {
+	currentTime = time.Date(2021, 8, 20, 13, 10, 0, 0, time.Local)
+
+	t.Run("Default", func(t *testing.T) {
+		_ = os.Setenv("JWT_SECRET", "RED")
+		_ = os.Setenv("JWT_VALIDITY_HOURS", "1")
+
+		token, err := GenerateToken("IFTTT", 0)
+
+		const result = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Mjk0NjE0MDAsImlhdCI6MTYyOTQ1NzgwMCwidXNlciI6IklGVFRUIn0._9KOnYFCUgREL3rwWPeGjE-0v4Nkh1AT0PzQCZyA0sw"
+
+		assert.Nil(t, err)
+		assert.NotNil(t, token)
+		assert.Equal(t, result, token)
+	})
+
+	t.Run("Specified validity", func(t *testing.T) {
+		_ = os.Setenv("JWT_SECRET", "RED")
+		_ = os.Setenv("JWT_VALIDITY_HOURS", "1")
+
+		token, err := GenerateToken("IFTTT", 2)
+
+		const result = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Mjk0NjUwMDAsImlhdCI6MTYyOTQ1NzgwMCwidXNlciI6IklGVFRUIn0.4eWQTTm-m11GCILIYmlX7Ac-OIWDVax44lz5roO8HY8"
+
+		assert.Nil(t, err)
+		assert.NotNil(t, token)
+		assert.Equal(t, result, token)
+	})
+
+	t.Run("Invalid env", func(t *testing.T) {
+		_ = os.Setenv("JWT_SECRET", "RED")
+		_ = os.Setenv("JWT_VALIDITY_HOURS", "")
+
+		token, err := GenerateToken("IFTTT", 0)
+
+		const result = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Mjk0NjE0MDAsImlhdCI6MTYyOTQ1NzgwMCwidXNlciI6IklGVFRUIn0._9KOnYFCUgREL3rwWPeGjE-0v4Nkh1AT0PzQCZyA0sw"
+
+		assert.Nil(t, err)
+		assert.NotNil(t, token)
+		assert.Equal(t, result, token)
 	})
 }
