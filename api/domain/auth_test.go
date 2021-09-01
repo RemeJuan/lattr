@@ -54,7 +54,7 @@ func TestTokenRepo_Create(t *testing.T) {
 			Modified:  mt,
 		}
 		const sqlQuery = "INSERT INTO tokens"
-		sqlReturn := sqlmock.NewRows([]string{"token"}).AddRow(mockToken)
+		sqlReturn := sqlmock.NewRows([]string{"id"}).AddRow(mockTokenId)
 		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(mockTokenName, mockToken, pq.Array(sc), exp, ct, mt).WillReturnRows(sqlReturn)
 
 		result, crErr := s.Create(request)

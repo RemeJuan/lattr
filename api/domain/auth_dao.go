@@ -15,7 +15,7 @@ var (
 )
 
 var (
-	queryCreateToken = "INSERT INTO tokens(name, token, scopes, expiresAt createdAt, Modified)  VALUES($1, $2, $3, $4, $5, $6) RETURNING token;"
+	queryCreateToken = "INSERT INTO tokens(name, token, scopes, expiresAt createdAt, Modified)  VALUES($1, $2, $3, $4, $5, $6) RETURNING id;"
 	queryGetToken    = "SELECT name, token, scopes, expiresAt, createdAt, Modified FROM tokens WHERE id=$1;"
 	queryListTokens  = "SELECT * FROM tokens"
 	queryResetToken  = "UPDATE tokens SET token=$2, expiresAt=$3 modified=$4 WHERE id=$1;"
@@ -53,7 +53,7 @@ func (tr *tokenRepo) Initialize() *sql.DB {
 }
 
 func (tr *tokenRepo) Create(token *Token) (*Token, error_utils.MessageErr) {
-	var tk string
+	var tk int64
 	stmt, err := tr.db.Prepare(queryCreateToken)
 
 	if err != nil {
@@ -75,7 +75,7 @@ func (tr *tokenRepo) Create(token *Token) (*Token, error_utils.MessageErr) {
 		return nil, error_utils.InternalServerError(message)
 	}
 
-	token.Token = tk
+	token.Id = tk
 	return token, nil
 }
 
