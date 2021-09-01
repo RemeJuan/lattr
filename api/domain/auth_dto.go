@@ -17,6 +17,7 @@ type Token struct {
 	ExpiresAt time.Time `json:"expiry"`
 	CreatedAt time.Time `json:"createdAt"`
 	Modified  time.Time `json:"modified"`
+	Validity  int       `json:"-"`
 }
 
 func (t *Token) Validate() error_utils.MessageErr {
