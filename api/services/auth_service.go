@@ -103,11 +103,11 @@ func GenerateToken(name string, validity int) (string, error) {
 		}
 	}
 
-	claims := jwt.MapClaims{}
-
-	claims["user"] = name
-	claims["exp"] = currentTime.Add(time.Hour * time.Duration(dur)).Unix()
-	claims["iat"] = currentTime.Unix()
+	claims := jwt.MapClaims{
+		"user": name,
+		"exp":  currentTime.Add(time.Hour * time.Duration(dur)).Unix(),
+		"iat":  currentTime.Unix(),
+	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
