@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,6 +16,8 @@ const mockTokenId = 1
 
 var ct = time.Now().Local()
 var mt = time.Now().Local()
+var exp = time.Now().Local()
+var sc = []string{"token:create"}
 
 func TestTokenRepo_Initialize(t *testing.T) {
 	t.Skipf("To DO")
@@ -25,6 +28,8 @@ func TestTokenRepo_Create(t *testing.T) {
 		Id:        mockTokenId,
 		Name:      mockTokenName,
 		Token:     mockToken,
+		Scopes:    sc,
+		ExpiresAt: exp,
 		CreatedAt: ct,
 		Modified:  mt,
 	}
@@ -43,12 +48,14 @@ func TestTokenRepo_Create(t *testing.T) {
 			Id:        mockTokenId,
 			Name:      mockTokenName,
 			Token:     mockToken,
+			Scopes:    sc,
+			ExpiresAt: exp,
 			CreatedAt: ct,
 			Modified:  mt,
 		}
 		const sqlQuery = "INSERT INTO tokens"
 		sqlReturn := sqlmock.NewRows([]string{"token"}).AddRow(mockToken)
-		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(mockTokenName, mockToken, ct, mt).WillReturnRows(sqlReturn)
+		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(mockTokenName, mockToken, pq.Array(sc), exp, ct, mt).WillReturnRows(sqlReturn)
 
 		result, crErr := s.Create(request)
 
@@ -66,10 +73,10 @@ func TestTokenRepo_Create(t *testing.T) {
 
 		s := InitTokenRepository(db)
 
-		const expected = "error when trying to save data: empty title"
+		const expected = "error when trying to save data: empty name"
 		const sqlQuery = "INSERT INTO tokens"
-		sqlReturn := errors.New("empty title")
-		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(mockTokenName, mockToken, ct, mt).WillReturnError(sqlReturn)
+		sqlReturn := errors.New("empty name")
+		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(mockTokenName, mockToken, pq.Array(sc), exp, ct, mt).WillReturnError(sqlReturn)
 
 		result, crErr := s.Create(request)
 
@@ -114,11 +121,13 @@ func TestTokenRepo_Get(t *testing.T) {
 			Id:        mockTokenId,
 			Name:      mockTokenName,
 			Token:     mockToken,
+			Scopes:    sc,
+			ExpiresAt: exp,
 			CreatedAt: ct,
 			Modified:  mt,
 		}
 		const sqlQuery = "SELECT (.+) FROM tokens"
-		sqlReturn := sqlmock.NewRows([]string{"id", "name", "token", "createdAt", "modified"}).AddRow(mockTokenId, mockTokenName, mockToken, ct, mt)
+		sqlReturn := sqlmock.NewRows([]string{"id", "name", "token", "scopes", "expiresAt", "createdAt", "modified"}).AddRow(mockTokenId, mockTokenName, mockToken, pq.Array(sc), exp, ct, mt)
 		mock.ExpectPrepare(sqlQuery).ExpectQuery().WithArgs(mockTokenId).WillReturnRows(sqlReturn)
 
 		result, crErr := s.Get(mockTokenId)
@@ -294,9 +303,11 @@ func TestTokenRepo_List(t *testing.T) {
 
 func TestTokenRepo_Reset(t *testing.T) {
 	request := &Token{
-		Id:       mockTokenId,
-		Token:    mockToken,
-		Modified: mt,
+		Id:        mockTokenId,
+		Token:     mockToken,
+		Scopes:    sc,
+		ExpiresAt: exp,
+		Modified:  mt,
 	}
 
 	t.Run("Success", func(t *testing.T) {
@@ -310,13 +321,15 @@ func TestTokenRepo_Reset(t *testing.T) {
 		s := InitTokenRepository(db)
 
 		expected := &Token{
-			Id:       mockTokenId,
-			Token:    mockToken,
-			Modified: mt,
+			Id:        mockTokenId,
+			Token:     mockToken,
+			Scopes:    sc,
+			ExpiresAt: exp,
+			Modified:  mt,
 		}
 		const sqlQuery = "UPDATE tokens"
 		sqlReturn := sqlmock.NewResult(0, 1)
-		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(mockTokenId, mockToken, mt).WillReturnResult(sqlReturn)
+		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(mockTokenId, mockToken, exp, mt).WillReturnResult(sqlReturn)
 
 		result, crErr := s.Reset(request)
 
@@ -360,7 +373,7 @@ func TestTokenRepo_Reset(t *testing.T) {
 
 		const sqlQuery = "UPDATE tokens"
 		sqlReturn := errors.New("invalid update id")
-		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(mockTokenId, mockToken, mt).WillReturnError(sqlReturn)
+		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(mockTokenId, mockToken, exp, mt).WillReturnError(sqlReturn)
 
 		result, crErr := s.Reset(request)
 
@@ -381,7 +394,7 @@ func TestTokenRepo_Reset(t *testing.T) {
 		const expected = "error when trying to save data: update failed"
 		const sqlQuery = "UPDATE tokens"
 		sqlReturn := errors.New("update failed")
-		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(mockTokenId, mockToken, mt).WillReturnError(sqlReturn)
+		mock.ExpectPrepare(sqlQuery).ExpectExec().WithArgs(mockTokenId, mockToken, exp, mt).WillReturnError(sqlReturn)
 
 		result, crErr := s.Reset(request)
 

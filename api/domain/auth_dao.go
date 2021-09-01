@@ -7,6 +7,7 @@ import (
 
 	"github.com/RemeJuan/lattr/utils/error_formats"
 	"github.com/RemeJuan/lattr/utils/error_utils"
+	"github.com/lib/pq"
 )
 
 var (
@@ -14,10 +15,10 @@ var (
 )
 
 var (
-	queryCreateToken = "INSERT INTO tokens(name, token, createdAt, Modified)  VALUES($1, $2, $3, $4) RETURNING token;"
-	queryGetToken    = "SELECT name, token, createdAt, Modified FROM tokens WHERE id=$1;"
+	queryCreateToken = "INSERT INTO tokens(name, token, scopes, expiresAt createdAt, Modified)  VALUES($1, $2, $3, $4, $5, $6) RETURNING token;"
+	queryGetToken    = "SELECT name, token, scopes, expiresAt, createdAt, Modified FROM tokens WHERE id=$1;"
 	queryListTokens  = "SELECT * FROM tokens"
-	queryResetToken  = "UPDATE tokens SET token=$2, modified=$3 WHERE id=$1;"
+	queryResetToken  = "UPDATE tokens SET token=$2, expiresAt=$3 modified=$4 WHERE id=$1;"
 	queryDeleteToken = "DELETE FROM tokens where id=$1"
 )
 
@@ -61,7 +62,7 @@ func (tr *tokenRepo) Create(token *Token) (*Token, error_utils.MessageErr) {
 	}
 	defer stmt.Close()
 
-	insertResult, createErr := stmt.Query(token.Name, token.Token, token.CreatedAt, token.Modified)
+	insertResult, createErr := stmt.Query(token.Name, token.Token, pq.Array(token.Scopes), token.ExpiresAt, token.CreatedAt, token.Modified)
 	if createErr != nil {
 		return nil, error_formats.ParseError(createErr)
 	}
@@ -91,7 +92,7 @@ func (tr *tokenRepo) Get(id int64) (*Token, error_utils.MessageErr) {
 	var token Token
 	result := stmt.QueryRow(id)
 
-	if getError := result.Scan(&token.Id, &token.Name, &token.Token, &token.CreatedAt, &token.Modified); getError != nil {
+	if getError := result.Scan(&token.Id, &token.Name, &token.Token, pq.Array(&token.Scopes), &token.ExpiresAt, &token.CreatedAt, &token.Modified); getError != nil {
 		return nil, error_formats.ParseError(getError)
 	}
 
@@ -137,7 +138,7 @@ func (tr *tokenRepo) Reset(token *Token) (*Token, error_utils.MessageErr) {
 	}
 	defer stmt.Close()
 
-	_, updateErr := stmt.Exec(token.Id, token.Token, token.Modified)
+	_, updateErr := stmt.Exec(token.Id, token.Token, token.ExpiresAt, token.Modified)
 	if updateErr != nil {
 		return nil, error_formats.ParseError(updateErr)
 	}
