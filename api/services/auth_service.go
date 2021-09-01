@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	AuthService authServiceInterface = &authService{}
-	currentTime                      = time.Now().Local()
+	AuthService  authServiceInterface = &authService{}
+	currentTime                       = time.Now().Local()
+	activeTokens []domain.Token
 )
 
 type authService struct{}
@@ -30,6 +31,8 @@ func (as authService) Create(token *domain.Token) (*domain.Token, error_utils.Me
 		return nil, err
 	}
 
+	generated, _ := GenerateToken(token.Name, token.Validity)
+	token.Token = generated
 	token.CreatedAt = time.Now().Local()
 	token.Modified = time.Now().Local()
 
@@ -38,6 +41,7 @@ func (as authService) Create(token *domain.Token) (*domain.Token, error_utils.Me
 		return nil, err
 	}
 
+	updateInMemoryTokens(token, nil)
 	return tk, nil
 }
 
@@ -50,11 +54,13 @@ func (as authService) Get(id int64) (*domain.Token, error_utils.MessageErr) {
 }
 
 func (as authService) List() ([]domain.Token, error_utils.MessageErr) {
-	token, err := domain.TokenRepo.List()
+	tokens, err := domain.TokenRepo.List()
 	if err != nil {
 		return nil, err
 	}
-	return token, nil
+
+	activeTokens = tokens
+	return tokens, nil
 }
 
 func (as authService) Reset(token *domain.Token) (*domain.Token, error_utils.MessageErr) {
@@ -67,6 +73,8 @@ func (as authService) Reset(token *domain.Token) (*domain.Token, error_utils.Mes
 	current.Modified = time.Now().Local()
 
 	updated, err := domain.TokenRepo.Reset(current)
+
+	updateInMemoryTokens(updated, token)
 
 	if err != nil {
 		return nil, err
@@ -81,6 +89,9 @@ func (as authService) Delete(i int64) error_utils.MessageErr {
 		return err
 	}
 	err = domain.TokenRepo.Delete(tk.Id)
+
+	updateInMemoryTokens(nil, tk)
+
 	if err != nil {
 		return err
 	}
@@ -112,4 +123,36 @@ func GenerateToken(name string, validity int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString([]byte(appKey))
+}
+
+func ValidateToken(token *domain.Token) bool {
+	for _, val := range activeTokens {
+		if val.Id == token.Id {
+			return true
+		}
+	}
+
+	return false
+}
+
+func updateInMemoryTokens(adding *domain.Token, removing *domain.Token) {
+	if removing != nil {
+		removeExpiredToken(*removing)
+	}
+
+	if adding != nil {
+		activeTokens = append(activeTokens, *adding)
+	}
+}
+
+func removeExpiredToken(tk domain.Token) {
+	a := make([]domain.Token, 0)
+
+	for _, val := range activeTokens {
+		if val.Id != tk.Id {
+			a = append(a, val)
+		}
+	}
+
+	activeTokens = a
 }

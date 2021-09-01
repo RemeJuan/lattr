@@ -413,7 +413,7 @@ func TestGenerateToken(t *testing.T) {
 		_ = os.Setenv("JWT_SECRET", "RED")
 		_ = os.Setenv("JWT_VALIDITY_HOURS", "1")
 
-		token, err := GenerateToken("IFTTT", 0)
+		token, err := GenerateToken("IFTTT", -0)
 
 		const result = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Mjk0NjE0MDAsImlhdCI6MTYyOTQ1NzgwMCwidXNlciI6IklGVFRUIn0._9KOnYFCUgREL3rwWPeGjE-0v4Nkh1AT0PzQCZyA0sw"
 
@@ -446,5 +446,32 @@ func TestGenerateToken(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotNil(t, token)
 		assert.Equal(t, result, token)
+	})
+}
+
+func TestValidateToken(t *testing.T) {
+	activeTokens = []domain.Token{
+		{
+			Id: 1,
+		},
+		{
+			Id: 2,
+		},
+	}
+
+	t.Run("Exists", func(t *testing.T) {
+		token := domain.Token{Id: 1}
+
+		result := ValidateToken(&token)
+
+		assert.Equal(t, true, result)
+	})
+
+	t.Run("!Exists", func(t *testing.T) {
+		token := domain.Token{Id: 3}
+
+		result := ValidateToken(&token)
+
+		assert.Equal(t, false, result)
 	})
 }
