@@ -56,6 +56,7 @@ func TestAuthService_Create(t *testing.T) {
 				Id:        mockTokenId,
 				Name:      mockTokenName,
 				Token:     mockToken,
+				Scopes:    []string{"token:create"},
 				CreatedAt: tm,
 				Modified:  tm,
 			}, nil
@@ -64,6 +65,7 @@ func TestAuthService_Create(t *testing.T) {
 		request := &domain.Token{
 			Name:      mockTokenName,
 			Token:     mockToken,
+			Scopes:    []string{"token:create"},
 			CreatedAt: tm,
 			Modified:  tm,
 		}
@@ -118,6 +120,7 @@ func TestAuthService_Create(t *testing.T) {
 		request := &domain.Token{
 			Name:      mockTokenName,
 			Token:     mockToken,
+			Scopes:    []string{"token:create"},
 			CreatedAt: tm,
 			Modified:  tm,
 		}
