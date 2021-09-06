@@ -9,13 +9,22 @@ import (
 
 func Router() {
 	r := gin.Default()
-	g := r.Group("/tweets")
+	tw := r.Group("/tweets")
 	{
-		g.POST("/create", controllers.CreateTweet)
-		g.GET("/:id", controllers.GetTweet)
-		g.GET("/all/:userId", controllers.GetTweets)
-		g.PUT("/:id", controllers.UpdateTweet)
-		g.DELETE("/:id", controllers.DeleteTweet)
+		tw.POST("/create", controllers.CreateTweet)
+		tw.GET("/:id", controllers.GetTweet)
+		tw.GET("/all/:userId", controllers.GetTweets)
+		tw.PUT("/:id", controllers.UpdateTweet)
+		tw.DELETE("/:id", controllers.DeleteTweet)
+	}
+
+	tk := r.Group("/token")
+	{
+		tk.POST("/create", controllers.TokenCreateMiddleWare(controllers.CreateToken))
+		tk.GET("/:id", controllers.GetToken)
+		tk.GET("/list", controllers.GetToken)
+		tk.PUT("/:id", controllers.ResetToken)
+		tk.DELETE("/:id", controllers.DeleteToken)
 	}
 
 	r.POST("/webhook", controllers.WebHook)
