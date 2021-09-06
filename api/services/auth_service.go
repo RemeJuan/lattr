@@ -24,7 +24,7 @@ type authServiceInterface interface {
 	List() ([]domain.Token, error_utils.MessageErr)
 	Reset(*domain.Token) (*domain.Token, error_utils.MessageErr)
 	Delete(int64) error_utils.MessageErr
-	ValidateToken(token *domain.Token) bool
+	ValidateToken(token *domain.Token, requiredScope string) bool
 }
 
 func (as authService) Create(token *domain.Token) (*domain.Token, error_utils.MessageErr) {
@@ -100,10 +100,10 @@ func (as authService) Delete(i int64) error_utils.MessageErr {
 	return nil
 }
 
-func (as authService) ValidateToken(token *domain.Token) bool {
+func (as authService) ValidateToken(token *domain.Token, requiredScope string) bool {
 	for _, val := range activeTokens {
 		if val.Token == token.Token {
-			return true
+			return containsRequiredScope(&val, requiredScope)
 		}
 	}
 
@@ -156,4 +156,14 @@ func removeExpiredToken(tk domain.Token) {
 	}
 
 	activeTokens = a
+}
+
+func containsRequiredScope(token *domain.Token, requiredScope string) bool {
+	for _, val := range token.Scopes {
+		if val == requiredScope {
+			return true
+		}
+	}
+
+	return false
 }
