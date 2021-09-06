@@ -54,6 +54,11 @@ SCHEDULE_TYPE=
 SCHEDULES=
 INTERVALS=
 CRON_SCHEDULE=
+
+# JWT
+JWT_SECRET=
+JWT_VALIDITY_HOURS=
+ENABLE_CREATE=
 ```
 
 * PORT - exposed web port
@@ -67,6 +72,9 @@ CRON_SCHEDULE=
     * RANDOM_MINUTE - A coma seperated list of "hours", eg "1,3,5,6,8"
 * INTERVAL - when type is set as INTERVAL, provide a number to denote hours between posts, eg 3.
 * CRON_SCHEDULE - Cron string to control the schedulers checking of the DB for pending posts, default: "*/5 6-18 * * *"
+* JWT_SECRET - A string used to generate secure tokens
+* JWT_VALIDITY_HOURS - Default number of hours a token is valid for, can be overridden with the create request
+* ENABLE_CREATE - Enables the tokens create endpoint (true|false)
 
 In `api/tables` you will find the SQL scripts needed to be run to setup the database
 
