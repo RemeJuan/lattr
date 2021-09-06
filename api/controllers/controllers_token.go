@@ -51,20 +51,14 @@ func GetTokens(c *gin.Context) {
 }
 
 func ResetToken(c *gin.Context) {
-	tkId, err := GetIdFromParam(c)
+	tkId, _ := GetIdFromParam(c)
 
 	var token domain.Token
-	if err := c.ShouldBindJSON(&token); err != nil {
-		theErr := error_utils.UnprocessableEntityError("invalid json body")
-		c.JSON(theErr.Status(), theErr)
-		return
-	}
-
 	token.Id = *tkId
 
-	result, resErr := services.AuthService.Reset(&token)
-	if resErr != nil {
-		c.JSON(resErr.Status(), err)
+	result, err := services.AuthService.Reset(&token)
+	if err != nil {
+		c.JSON(err.Status(), err)
 		return
 	}
 
@@ -74,7 +68,7 @@ func ResetToken(c *gin.Context) {
 func DeleteToken(c *gin.Context) {
 	tkId, _ := GetIdFromParam(c)
 
-	if err := services.TweetService.Delete(*tkId); err != nil {
+	if err := services.AuthService.Delete(*tkId); err != nil {
 		c.JSON(err.Status(), err)
 		return
 	}
