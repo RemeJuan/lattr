@@ -42,9 +42,9 @@ func TokenCreateMiddleWare() gin.HandlerFunc {
 	}
 }
 
-func AuthenticateJWTMiddleware() gin.HandlerFunc {
+func AuthenticateJWTMiddleware(requiredScope string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		isValid := AuthenticateJWTToken(c)
+		isValid := AuthenticateJWTToken(c, requiredScope)
 
 		if isValid {
 			c.Next()
@@ -56,10 +56,10 @@ func AuthenticateJWTMiddleware() gin.HandlerFunc {
 	}
 }
 
-func AuthenticateJWTToken(c *gin.Context) bool {
+func AuthenticateJWTToken(c *gin.Context, requiredScope string) bool {
 	jwtToken := ExtractJWTToken(c)
 
-	return services.AuthService.ValidateToken(&domain.Token{Token: jwtToken})
+	return services.AuthService.ValidateToken(&domain.Token{Token: jwtToken}, requiredScope)
 }
 
 func ExtractJWTToken(c *gin.Context) string {
