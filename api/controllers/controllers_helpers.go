@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -29,14 +28,16 @@ func GetParam(c *gin.Context, paramName string) string {
 	return c.Params.ByName(paramName)
 }
 
-func TokenCreateMiddleWare(f func(c *gin.Context)) gin.HandlerFunc {
+func TokenCreateMiddleWare() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		isEnabled, _ := strconv.ParseBool(os.Getenv("ENABLE_CREATE"))
 
 		if isEnabled {
 			c.Next()
 		} else {
-			c.JSON(http.StatusNotImplemented, gin.H{"status": "Token creation not enabled for this app"})
+			err := error_utils.NotImplementedError("Token creation not enabled for this app")
+			c.JSON(err.Status(), err)
+			c.Abort()
 		}
 	}
 }
@@ -48,7 +49,9 @@ func AuthenticateJWTMiddleware() gin.HandlerFunc {
 		if isValid {
 			c.Next()
 		} else {
-			c.JSON(http.StatusForbidden, gin.H{"status": "Invalid or missing token"})
+			err := error_utils.ForbiddenError("Invalid or missing token")
+			c.JSON(err.Status(), err)
+			c.Abort()
 		}
 	}
 }
