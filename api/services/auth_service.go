@@ -24,6 +24,7 @@ type authServiceInterface interface {
 	List() ([]domain.Token, error_utils.MessageErr)
 	Reset(*domain.Token) (*domain.Token, error_utils.MessageErr)
 	Delete(int64) error_utils.MessageErr
+	ValidateToken(token *domain.Token) bool
 }
 
 func (as authService) Create(token *domain.Token) (*domain.Token, error_utils.MessageErr) {
@@ -99,6 +100,16 @@ func (as authService) Delete(i int64) error_utils.MessageErr {
 	return nil
 }
 
+func (as authService) ValidateToken(token *domain.Token) bool {
+	for _, val := range activeTokens {
+		if val.Token == token.Token {
+			return true
+		}
+	}
+
+	return false
+}
+
 func GenerateToken(name string, validity int) (string, error) {
 	appKey := os.Getenv("JWT_SECRET")
 	jvh := os.Getenv("JWT_VALIDITY_HOURS")
@@ -125,16 +136,6 @@ func GenerateToken(name string, validity int) (string, error) {
 	return token.SignedString([]byte(appKey))
 }
 
-func ValidateToken(token *domain.Token) bool {
-	for _, val := range activeTokens {
-		if val.Id == token.Id {
-			return true
-		}
-	}
-
-	return false
-}
-
 func updateInMemoryTokens(adding *domain.Token, removing *domain.Token) {
 	if removing != nil {
 		removeExpiredToken(*removing)
@@ -149,7 +150,7 @@ func removeExpiredToken(tk domain.Token) {
 	a := make([]domain.Token, 0)
 
 	for _, val := range activeTokens {
-		if val.Id != tk.Id {
+		if val.Token != tk.Token {
 			a = append(a, val)
 		}
 	}
