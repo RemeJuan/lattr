@@ -70,5 +70,5 @@ func (asm *authServiceMock) Reset(token *domain.Token) (*domain.Token, error_uti
 }
 
 func (asm *authServiceMock) Delete(id int64) error_utils.MessageErr {
-	return deleteTweetService(id)
+	return deleteTokensService(id)
 }
