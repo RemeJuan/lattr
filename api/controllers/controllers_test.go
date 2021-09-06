@@ -19,7 +19,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const basePath = "/tweets"
+const tweetPath = "/tweets"
+const tokenPath = "/token"
 const layout = "2021-07-12 10:55:50 +0000"
 
 func TestCreateTweet(t *testing.T) {
@@ -42,12 +43,12 @@ func TestCreateTweet(t *testing.T) {
 		}
 		jsonBody := `{"title": "the title", "body": "the body"}`
 		r := gin.Default()
-		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(jsonBody))
+		req, err := http.NewRequest(http.MethodPost, tweetPath, bytes.NewBufferString(jsonBody))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
 		}
 		rr := httptest.NewRecorder()
-		r.POST(basePath, CreateTweet)
+		r.POST(tweetPath, CreateTweet)
 		r.ServeHTTP(rr, req)
 
 		var tweet domain.Tweet
@@ -63,7 +64,7 @@ func TestCreateTweet(t *testing.T) {
 	t.Run("Invalid JSON", func(t *testing.T) {
 		inputJson := ""
 		r := gin.Default()
-		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(inputJson))
+		req, err := http.NewRequest(http.MethodPost, tweetPath, bytes.NewBufferString(inputJson))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
 		}
@@ -87,12 +88,12 @@ func TestCreateTweet(t *testing.T) {
 		}
 		jsonBody := `{}`
 		r := gin.Default()
-		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(jsonBody))
+		req, err := http.NewRequest(http.MethodPost, tweetPath, bytes.NewBufferString(jsonBody))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
 		}
 		rr := httptest.NewRecorder()
-		r.POST(basePath, CreateTweet)
+		r.POST(tweetPath, CreateTweet)
 		r.ServeHTTP(rr, req)
 
 		msgErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -124,7 +125,7 @@ func TestGetTweet(t *testing.T) {
 		}
 
 		r := gin.Default()
-		path := fmt.Sprintf("%s/%v", basePath, recordId)
+		path := fmt.Sprintf("%s/%v", tweetPath, recordId)
 		req, _ := http.NewRequest(http.MethodGet, path, nil)
 		rr := httptest.NewRecorder()
 		r.GET("/tweets/:id", GetTweet)
@@ -148,7 +149,7 @@ func TestGetTweet(t *testing.T) {
 		const invalidID = "red"
 
 		r := gin.Default()
-		path := fmt.Sprintf("%s/%v", basePath, invalidID)
+		path := fmt.Sprintf("%s/%v", tweetPath, invalidID)
 		req, _ := http.NewRequest(http.MethodGet, path, nil)
 		rr := httptest.NewRecorder()
 		r.GET("/tweets/:id", GetTweet)
@@ -169,7 +170,7 @@ func TestGetTweet(t *testing.T) {
 		}
 
 		r := gin.Default()
-		path := fmt.Sprintf("%s/%v", basePath, recordId)
+		path := fmt.Sprintf("%s/%v", tweetPath, recordId)
 		req, _ := http.NewRequest(http.MethodGet, path, nil)
 		rr := httptest.NewRecorder()
 		r.GET("/tweets/:id", GetTweet)
@@ -213,7 +214,7 @@ func TestGetTweets(t *testing.T) {
 		}
 
 		r := gin.Default()
-		path := fmt.Sprintf("%s/all/%v", basePath, userId)
+		path := fmt.Sprintf("%s/all/%v", tweetPath, userId)
 		req, _ := http.NewRequest(http.MethodGet, path, nil)
 		rr := httptest.NewRecorder()
 		r.GET("/tweets/all/:userId", GetTweets)
@@ -246,7 +247,7 @@ func TestGetTweets(t *testing.T) {
 		}
 
 		r := gin.Default()
-		path := fmt.Sprintf("%s/all/%v", basePath, userId)
+		path := fmt.Sprintf("%s/all/%v", tweetPath, userId)
 		req, _ := http.NewRequest(http.MethodGet, path, nil)
 		rr := httptest.NewRecorder()
 		r.GET("/tweets/all/:userId", GetTweets)
@@ -283,7 +284,7 @@ func TestUpdateTweet(t *testing.T) {
 		}
 		inputJson := `{"message": "different message"}`
 		r := gin.Default()
-		path := fmt.Sprintf("%s/%v", basePath, recordId)
+		path := fmt.Sprintf("%s/%v", tweetPath, recordId)
 		req, _ := http.NewRequest(http.MethodPut, path, bytes.NewBufferString(inputJson))
 		rr := httptest.NewRecorder()
 		r.PUT("/tweets/:id", UpdateTweet)
@@ -308,7 +309,7 @@ func TestUpdateTweet(t *testing.T) {
 
 		inputJson := `{"message": "different message"}`
 		r := gin.Default()
-		path := fmt.Sprintf("%s/%v", basePath, invalidID)
+		path := fmt.Sprintf("%s/%v", tweetPath, invalidID)
 		req, _ := http.NewRequest(http.MethodPut, path, bytes.NewBufferString(inputJson))
 		rr := httptest.NewRecorder()
 		r.PUT("/tweets/:id", UpdateTweet)
@@ -326,7 +327,7 @@ func TestUpdateTweet(t *testing.T) {
 
 		inputJson := ""
 		r := gin.Default()
-		path := fmt.Sprintf("%s/%v", basePath, recordId)
+		path := fmt.Sprintf("%s/%v", tweetPath, recordId)
 		req, _ := http.NewRequest(http.MethodPut, path, bytes.NewBufferString(inputJson))
 		rr := httptest.NewRecorder()
 		r.PUT("/tweets/:id", UpdateTweet)
@@ -348,7 +349,7 @@ func TestUpdateTweet(t *testing.T) {
 
 		inputJson := `{"message": "different message"}`
 		r := gin.Default()
-		path := fmt.Sprintf("%s/%v", basePath, recordId)
+		path := fmt.Sprintf("%s/%v", tweetPath, recordId)
 		req, _ := http.NewRequest(http.MethodPut, path, bytes.NewBufferString(inputJson))
 		rr := httptest.NewRecorder()
 		r.PUT("/tweets/:id", UpdateTweet)
@@ -375,7 +376,7 @@ func TestDeleteTweet(t *testing.T) {
 		}
 
 		r := gin.Default()
-		path := fmt.Sprintf("%s/%v", basePath, recordId)
+		path := fmt.Sprintf("%s/%v", tweetPath, recordId)
 		req, _ := http.NewRequest(http.MethodDelete, path, nil)
 		rr := httptest.NewRecorder()
 		r.DELETE("/tweets/:id", DeleteTweet)
@@ -393,7 +394,7 @@ func TestDeleteTweet(t *testing.T) {
 		services.TweetService = &tweetServiceMock{}
 
 		r := gin.Default()
-		path := fmt.Sprintf("%s/%v", basePath, "red")
+		path := fmt.Sprintf("%s/%v", tweetPath, "red")
 		req, _ := http.NewRequest(http.MethodDelete, path, nil)
 		rr := httptest.NewRecorder()
 		r.DELETE("/tweets/:id", DeleteTweet)
@@ -416,7 +417,7 @@ func TestDeleteTweet(t *testing.T) {
 		}
 
 		r := gin.Default()
-		path := fmt.Sprintf("%s/%v", basePath, recordId)
+		path := fmt.Sprintf("%s/%v", tweetPath, recordId)
 		req, _ := http.NewRequest(http.MethodDelete, path, nil)
 		rr := httptest.NewRecorder()
 		r.DELETE("/tweets/:id", DeleteTweet)
@@ -467,12 +468,12 @@ func TestWebHook(t *testing.T) {
 
 		jsonBody := `{"message": "the message"}`
 		r := gin.Default()
-		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(jsonBody))
+		req, err := http.NewRequest(http.MethodPost, tweetPath, bytes.NewBufferString(jsonBody))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
 		}
 		rr := httptest.NewRecorder()
-		r.POST(basePath, WebHook)
+		r.POST(tweetPath, WebHook)
 		r.ServeHTTP(rr, req)
 
 		var tweet domain.Tweet
@@ -488,7 +489,7 @@ func TestWebHook(t *testing.T) {
 	t.Run("Invalid JSON", func(t *testing.T) {
 		inputJson := ""
 		r := gin.Default()
-		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(inputJson))
+		req, err := http.NewRequest(http.MethodPost, tweetPath, bytes.NewBufferString(inputJson))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
 		}
@@ -513,12 +514,12 @@ func TestWebHook(t *testing.T) {
 
 		jsonBody := `{}`
 		r := gin.Default()
-		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(jsonBody))
+		req, err := http.NewRequest(http.MethodPost, tweetPath, bytes.NewBufferString(jsonBody))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
 		}
 		rr := httptest.NewRecorder()
-		r.POST(basePath, WebHook)
+		r.POST(tweetPath, WebHook)
 		r.ServeHTTP(rr, req)
 
 		msgErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -546,12 +547,12 @@ func TestWebHook(t *testing.T) {
 		}
 		jsonBody := `{}`
 		r := gin.Default()
-		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(jsonBody))
+		req, err := http.NewRequest(http.MethodPost, tweetPath, bytes.NewBufferString(jsonBody))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
 		}
 		rr := httptest.NewRecorder()
-		r.POST(basePath, CreateTweet)
+		r.POST(tweetPath, CreateTweet)
 		r.ServeHTTP(rr, req)
 
 		msgErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -562,79 +563,91 @@ func TestWebHook(t *testing.T) {
 	})
 }
 
-func TestCreateToken(t *testing.T) {
+func TestAuthControllers(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	const recordId int64 = 1
-	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
+	const mockId int64 = 1
+	const mockName = "token"
+	const mockToken = "mock-token"
+	mockScopes := []string{"token:create"}
+	mockDate := time.Date(2021, 8, 20, 14, 30, 0, 0, time.Local)
 
-	t.Run("Success", func(t *testing.T) {
-		services.AuthService = &authServiceMock{}
+	t.Run("CreateToken", func(t *testing.T) {
+		t.Run("Success", func(t *testing.T) {
+			services.AuthService = &authServiceMock{}
 
-		const msg = "the message"
+			createTokenService = func(token *domain.Token) (*domain.Token, error_utils.MessageErr) {
+				return &domain.Token{
+					Id:        mockId,
+					Name:      mockName,
+					Token:     mockToken,
+					Scopes:    mockScopes,
+					ExpiresAt: mockDate,
+					CreatedAt: mockDate,
+					Modified:  mockDate,
+				}, nil
+			}
+			jsonBody := `{"name": "token", "scope": ["token:create"]}`
+			r := gin.Default()
+			req, err := http.NewRequest(http.MethodPost, tokenPath, bytes.NewBufferString(jsonBody))
+			if err != nil {
+				t.Errorf("this is the error: %v\n", err)
+			}
+			rr := httptest.NewRecorder()
+			r.POST(tokenPath, CreateToken)
+			r.ServeHTTP(rr, req)
 
-		createTokenService = func(token *domain.Token) (*domain.Token, error_utils.MessageErr) {
-			return &domain.Token{}, nil
-		}
-		jsonBody := `{"title": "the title", "body": "the body"}`
-		r := gin.Default()
-		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(jsonBody))
-		if err != nil {
-			t.Errorf("this is the error: %v\n", err)
-		}
-		rr := httptest.NewRecorder()
-		r.POST(basePath, CreateTweet)
-		r.ServeHTTP(rr, req)
+			var token domain.Token
+			err = json.Unmarshal(rr.Body.Bytes(), &token)
+			assert.Nil(t, err)
+			assert.NotNil(t, token)
+			assert.EqualValues(t, http.StatusCreated, rr.Code)
+			assert.EqualValues(t, mockId, token.Id)
+			assert.EqualValues(t, mockName, token.Name)
+			assert.EqualValues(t, mockScopes, token.Scopes)
+		})
 
-		var tweet domain.Tweet
-		err = json.Unmarshal(rr.Body.Bytes(), &tweet)
-		assert.Nil(t, err)
-		assert.NotNil(t, tweet)
-		assert.EqualValues(t, http.StatusCreated, rr.Code)
-		assert.EqualValues(t, recordId, tweet.Id)
-		assert.EqualValues(t, msg, tweet.Message)
-		assert.EqualValues(t, postTime, tweet.PostTime)
+		t.Run("Invalid JSON", func(t *testing.T) {
+			inputJson := ""
+			r := gin.Default()
+			req, err := http.NewRequest(http.MethodPost, tokenPath, bytes.NewBufferString(inputJson))
+			if err != nil {
+				t.Errorf("this is the error: %v\n", err)
+			}
+			rr := httptest.NewRecorder()
+			r.POST(tokenPath, CreateToken)
+			r.ServeHTTP(rr, req)
+
+			apiErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+			assert.Nil(t, err)
+			assert.EqualValues(t, http.StatusUnprocessableEntity, apiErr.Status())
+			assert.EqualValues(t, "invalid json body", apiErr.Message())
+			assert.EqualValues(t, "invalid_request", apiErr.Error())
+		})
+
+		t.Run("Create Error", func(t *testing.T) {
+			services.AuthService = &authServiceMock{}
+
+			createTokenService = func(message *domain.Token) (*domain.Token, error_utils.MessageErr) {
+				return nil, error_utils.UnprocessableEntityError("Body cannot be empty")
+			}
+			jsonBody := `{}`
+			r := gin.Default()
+			req, err := http.NewRequest(http.MethodPost, tokenPath, bytes.NewBufferString(jsonBody))
+			if err != nil {
+				t.Errorf("this is the error: %v\n", err)
+			}
+			rr := httptest.NewRecorder()
+			r.POST(tokenPath, CreateTweet)
+			r.ServeHTTP(rr, req)
+
+			msgErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+			assert.EqualValues(t, http.StatusUnprocessableEntity, msgErr.Status())
+			assert.EqualValues(t, "Body cannot be empty", msgErr.Message())
+			assert.EqualValues(t, "invalid_request", msgErr.Error())
+		})
 	})
 
-	t.Run("Invalid JSON", func(t *testing.T) {
-		inputJson := ""
-		r := gin.Default()
-		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(inputJson))
-		if err != nil {
-			t.Errorf("this is the error: %v\n", err)
-		}
-		rr := httptest.NewRecorder()
-		r.POST("/tweets", CreateTweet)
-		r.ServeHTTP(rr, req)
-
-		apiErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
-
-		assert.Nil(t, err)
-		assert.EqualValues(t, http.StatusUnprocessableEntity, apiErr.Status())
-		assert.EqualValues(t, "invalid json body", apiErr.Message())
-		assert.EqualValues(t, "invalid_request", apiErr.Error())
-	})
-
-	t.Run("Create Error", func(t *testing.T) {
-		services.TweetService = &tweetServiceMock{}
-
-		createTweetService = func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
-			return nil, error_utils.UnprocessableEntityError("Body cannot be empty")
-		}
-		jsonBody := `{}`
-		r := gin.Default()
-		req, err := http.NewRequest(http.MethodPost, basePath, bytes.NewBufferString(jsonBody))
-		if err != nil {
-			t.Errorf("this is the error: %v\n", err)
-		}
-		rr := httptest.NewRecorder()
-		r.POST(basePath, CreateTweet)
-		r.ServeHTTP(rr, req)
-
-		msgErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
-
-		assert.EqualValues(t, http.StatusUnprocessableEntity, msgErr.Status())
-		assert.EqualValues(t, "Body cannot be empty", msgErr.Message())
-		assert.EqualValues(t, "invalid_request", msgErr.Error())
-	})
 }
