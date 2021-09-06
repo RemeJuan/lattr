@@ -28,12 +28,12 @@ func CreateToken(c *gin.Context) {
 }
 
 func GetToken(c *gin.Context) {
-	tkId, err := GetIdFromParam(c)
+	tkId, _ := GetIdFromParam(c)
 
 	result, getErr := services.AuthService.Get(*tkId)
 
 	if getErr != nil {
-		c.JSON(getErr.Status(), err)
+		c.JSON(getErr.Status(), getErr)
 		return
 	}
 	c.JSON(http.StatusOK, result)
