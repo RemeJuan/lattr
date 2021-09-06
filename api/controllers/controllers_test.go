@@ -554,21 +554,21 @@ func TestAuthControllers(t *testing.T) {
 	const mockToken = "mock-token"
 	mockScopes := []string{"token:create"}
 	mockDate := time.Date(2021, 8, 20, 14, 30, 0, 0, time.Local)
-
+	mockTokenResponse := domain.Token{
+		Id:        mockId,
+		Name:      mockName,
+		Token:     mockToken,
+		Scopes:    mockScopes,
+		ExpiresAt: mockDate,
+		CreatedAt: mockDate,
+		Modified:  mockDate,
+	}
 	t.Run("CreateToken", func(t *testing.T) {
 		t.Run("Success", func(t *testing.T) {
 			services.AuthService = &authServiceMock{}
 
 			createTokenService = func(token *domain.Token) (*domain.Token, error_utils.MessageErr) {
-				return &domain.Token{
-					Id:        mockId,
-					Name:      mockName,
-					Token:     mockToken,
-					Scopes:    mockScopes,
-					ExpiresAt: mockDate,
-					CreatedAt: mockDate,
-					Modified:  mockDate,
-				}, nil
+				return &mockTokenResponse, nil
 			}
 			jsonBody := `{"name": "token", "scope": ["token:create"]}`
 			r := gin.Default()
@@ -638,15 +638,7 @@ func TestAuthControllers(t *testing.T) {
 			services.AuthService = &authServiceMock{}
 
 			getTokenService = func(id int64) (*domain.Token, error_utils.MessageErr) {
-				return &domain.Token{
-					Id:        mockId,
-					Name:      mockName,
-					Token:     mockToken,
-					Scopes:    mockScopes,
-					ExpiresAt: mockDate,
-					CreatedAt: mockDate,
-					Modified:  mockDate,
-				}, nil
+				return &mockTokenResponse, nil
 			}
 
 			r := gin.Default()
@@ -704,6 +696,187 @@ func TestAuthControllers(t *testing.T) {
 			assert.EqualValues(t, http.StatusNotFound, msgErr.Status())
 			assert.EqualValues(t, "unable to find item", msgErr.Message())
 			assert.EqualValues(t, "not_found", msgErr.Error())
+		})
+	})
+
+	t.Run("GetTokens", func(t *testing.T) {
+		t.Run("Success", func(t *testing.T) {
+			services.AuthService = &authServiceMock{}
+
+			listTokensService = func() ([]domain.Token, error_utils.MessageErr) {
+				return []domain.Token{
+					mockTokenResponse,
+				}, nil
+			}
+
+			r := gin.Default()
+			path := fmt.Sprintf("%s/list", tokenPath)
+			req, _ := http.NewRequest(http.MethodGet, path, nil)
+			rr := httptest.NewRecorder()
+			r.GET("token/list", GetTokens)
+			r.ServeHTTP(rr, req)
+
+			var tokens []domain.Token
+			err := json.Unmarshal(rr.Body.Bytes(), &tokens)
+
+			assert.Nil(t, err)
+			assert.NotNil(t, tokens)
+			assert.EqualValues(t, http.StatusOK, rr.Code)
+			assert.EqualValues(t, 1, len(tokens))
+		})
+
+		t.Run("Error", func(t *testing.T) {
+			services.AuthService = &authServiceMock{}
+
+			listTokensService = func() ([]domain.Token, error_utils.MessageErr) {
+				return nil, error_utils.NotFoundError("No results")
+			}
+
+			r := gin.Default()
+			path := fmt.Sprintf("%s/list", tokenPath)
+			req, _ := http.NewRequest(http.MethodGet, path, nil)
+			rr := httptest.NewRecorder()
+			r.GET("token/list", GetTokens)
+			r.ServeHTTP(rr, req)
+
+			result, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+			assert.NotNil(t, result)
+			assert.EqualValues(t, result.Status(), rr.Code)
+			assert.EqualValues(t, http.StatusNotFound, result.Status())
+			assert.EqualValues(t, "not_found", result.Error())
+			assert.EqualValues(t, "No results", result.Message())
+		})
+	})
+
+	t.Run("ResetToken", func(t *testing.T) {
+		t.Run("Success", func(t *testing.T) {
+			services.AuthService = &authServiceMock{}
+
+			resetTokensService = func(token *domain.Token) (*domain.Token, error_utils.MessageErr) {
+				return &mockTokenResponse, nil
+			}
+
+			r := gin.Default()
+			path := fmt.Sprintf("%s/%v", tokenPath, mockId)
+			req, _ := http.NewRequest(http.MethodPut, path, nil)
+			rr := httptest.NewRecorder()
+			r.PUT("/token/:id", ResetToken)
+			r.ServeHTTP(rr, req)
+
+			var token domain.Token
+			err := json.Unmarshal(rr.Body.Bytes(), &token)
+
+			assert.Nil(t, err)
+			assert.NotNil(t, token)
+			assert.EqualValues(t, http.StatusOK, rr.Code)
+			assert.EqualValues(t, mockId, token.Id)
+			assert.EqualValues(t, mockToken, token.Token)
+		})
+
+		t.Run("Cannot parse ID", func(t *testing.T) {
+			services.AuthService = &authServiceMock{}
+
+			const invalidId = "red"
+
+			r := gin.Default()
+			path := fmt.Sprintf("%s/%v", tokenPath, invalidId)
+			req, _ := http.NewRequest(http.MethodPut, path, nil)
+			rr := httptest.NewRecorder()
+			r.PUT("/token/:id", ResetToken)
+			r.ServeHTTP(rr, req)
+
+			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+			assert.EqualValues(t, http.StatusUnprocessableEntity, msgErr.Status())
+			assert.EqualValues(t, "unable to parse ID", msgErr.Message())
+			assert.EqualValues(t, "invalid_request", msgErr.Error())
+		})
+
+		t.Run("Error", func(t *testing.T) {
+			services.AuthService = &authServiceMock{}
+
+			resetTokensService = func(token *domain.Token) (*domain.Token, error_utils.MessageErr) {
+				return nil, error_utils.NotFoundError("unable to find item")
+			}
+
+			r := gin.Default()
+			path := fmt.Sprintf("%s/%v", tokenPath, mockId)
+			req, _ := http.NewRequest(http.MethodPut, path, nil)
+			rr := httptest.NewRecorder()
+			r.PUT("/token/:id", ResetToken)
+			r.ServeHTTP(rr, req)
+
+			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+			assert.EqualValues(t, http.StatusNotFound, msgErr.Status())
+			assert.EqualValues(t, "unable to find item", msgErr.Message())
+			assert.EqualValues(t, "not_found", msgErr.Error())
+		})
+	})
+
+	t.Run("DeleteToken", func(t *testing.T) {
+		t.Run("Success", func(t *testing.T) {
+			services.AuthService = &authServiceMock{}
+
+			deleteTokensService = func(id int64) error_utils.MessageErr {
+				return nil
+			}
+
+			r := gin.Default()
+			path := fmt.Sprintf("%s/%v", tokenPath, mockId)
+			req, _ := http.NewRequest(http.MethodDelete, path, nil)
+			rr := httptest.NewRecorder()
+			r.DELETE("/token/:id", DeleteToken)
+			r.ServeHTTP(rr, req)
+
+			var result map[string]string
+			err := json.Unmarshal(rr.Body.Bytes(), &result)
+
+			assert.Nil(t, err)
+			assert.EqualValues(t, http.StatusOK, rr.Code)
+			assert.Equal(t, "deleted", result["status"])
+		})
+
+		t.Run("Unable to parse ID", func(t *testing.T) {
+			services.AuthService = &authServiceMock{}
+
+			const invalidId = "red"
+			r := gin.Default()
+			path := fmt.Sprintf("%s/%v", tokenPath, invalidId)
+			req, _ := http.NewRequest(http.MethodDelete, path, nil)
+			rr := httptest.NewRecorder()
+			r.DELETE("/token/:id", DeleteToken)
+			r.ServeHTTP(rr, req)
+
+			apiErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+			assert.EqualValues(t, http.StatusUnprocessableEntity, rr.Code)
+			assert.EqualValues(t, rr.Code, apiErr.Status())
+			assert.Equal(t, "unable to parse ID", apiErr.Message())
+			assert.Equal(t, "invalid_request", apiErr.Error())
+		})
+
+		t.Run("Error", func(t *testing.T) {
+			services.AuthService = &authServiceMock{}
+
+			deleteTokensService = func(id int64) error_utils.MessageErr {
+				return error_utils.InternalServerError("Unable to delete record")
+			}
+
+			r := gin.Default()
+			path := fmt.Sprintf("%s/%v", tokenPath, mockId)
+			req, _ := http.NewRequest(http.MethodDelete, path, nil)
+			rr := httptest.NewRecorder()
+			r.DELETE("/token/:id", DeleteToken)
+			r.ServeHTTP(rr, req)
+
+			apiErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+			assert.EqualValues(t, http.StatusInternalServerError, rr.Code)
+			assert.EqualValues(t, rr.Code, apiErr.Status())
+			assert.Equal(t, "Unable to delete record", apiErr.Message())
+			assert.Equal(t, "server_error", apiErr.Error())
 		})
 	})
 }
