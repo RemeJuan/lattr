@@ -7,7 +7,7 @@ import (
 
 	"github.com/RemeJuan/lattr/domain"
 	"github.com/RemeJuan/lattr/utils/error_utils"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
 
 var (
