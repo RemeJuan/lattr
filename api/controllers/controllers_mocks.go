@@ -73,6 +73,6 @@ func (asm *authServiceMock) Delete(id int64) error_utils.MessageErr {
 	return deleteTokensService(id)
 }
 
-func (asm *authServiceMock) ValidateToken(token *domain.Token) bool {
+func (asm *authServiceMock) ValidateToken(token *domain.Token, requiredScope string) bool {
 	return true
 }

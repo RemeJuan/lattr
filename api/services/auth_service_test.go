@@ -452,25 +452,27 @@ func TestGenerateToken(t *testing.T) {
 func TestValidateToken(t *testing.T) {
 	activeTokens = []domain.Token{
 		{
-			Id: 1,
+			Token:  "1",
+			Scopes: []string{"token:read", "token:create"},
 		},
 		{
-			Id: 2,
+			Token:  "2",
+			Scopes: []string{"token:read", "token:create"},
 		},
 	}
 
 	t.Run("Exists", func(t *testing.T) {
-		token := domain.Token{Id: 1}
+		token := domain.Token{Token: "1"}
 
-		result := ValidateToken(&token)
+		result := AuthService.ValidateToken(&token, "token:read")
 
 		assert.Equal(t, true, result)
 	})
 
 	t.Run("!Exists", func(t *testing.T) {
-		token := domain.Token{Id: 3}
+		token := domain.Token{Token: "3"}
 
-		result := ValidateToken(&token)
+		result := AuthService.ValidateToken(&token, "token:read")
 
 		assert.Equal(t, false, result)
 	})
