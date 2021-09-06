@@ -631,6 +631,61 @@ func TestAuthControllers(t *testing.T) {
 			assert.EqualValues(t, "Body cannot be empty", msgErr.Message())
 			assert.EqualValues(t, "invalid_request", msgErr.Error())
 		})
+
+		t.Run("CreateMiddleware", func(t *testing.T) {
+			t.Run("Create Allowed", func(t *testing.T) {
+				_ = os.Setenv("ENABLE_CREATE", "true")
+				services.AuthService = &authServiceMock{}
+
+				createTokenService = func(token *domain.Token) (*domain.Token, error_utils.MessageErr) {
+					return &mockTokenResponse, nil
+				}
+				jsonBody := `{"name": "token", "scope": ["token:create"]}`
+				r := gin.Default()
+				req, err := http.NewRequest(http.MethodPost, tokenPath, bytes.NewBufferString(jsonBody))
+				if err != nil {
+					t.Errorf("this is the error: %v\n", err)
+				}
+				rr := httptest.NewRecorder()
+				r.POST(tokenPath, TokenCreateMiddleWare(), CreateToken)
+				r.ServeHTTP(rr, req)
+
+				var token domain.Token
+				err = json.Unmarshal(rr.Body.Bytes(), &token)
+				assert.Nil(t, err)
+				assert.NotNil(t, token)
+				assert.EqualValues(t, http.StatusCreated, rr.Code)
+				assert.EqualValues(t, mockId, token.Id)
+				assert.EqualValues(t, mockName, token.Name)
+				assert.EqualValues(t, mockScopes, token.Scopes)
+			})
+
+			t.Run("Create Not Allowed", func(t *testing.T) {
+				_ = os.Setenv("ENABLE_CREATE", "false")
+				services.AuthService = &authServiceMock{}
+
+				createTokenService = func(token *domain.Token) (*domain.Token, error_utils.MessageErr) {
+					return &mockTokenResponse, nil
+				}
+				jsonBody := `{"name": "token", "scope": ["token:create"]}`
+				r := gin.Default()
+				req, err := http.NewRequest(http.MethodPost, tokenPath, bytes.NewBufferString(jsonBody))
+				if err != nil {
+					t.Errorf("this is the error: %v\n", err)
+				}
+				rr := httptest.NewRecorder()
+				r.POST(tokenPath, TokenCreateMiddleWare(), CreateToken)
+				r.ServeHTTP(rr, req)
+
+				apiErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+				assert.Nil(t, err)
+				assert.EqualValues(t, http.StatusNotImplemented, rr.Code)
+				assert.EqualValues(t, rr.Code, apiErr.Status())
+				assert.Equal(t, "Token creation not enabled for this app", apiErr.Message())
+				assert.Equal(t, "server_error", apiErr.Error())
+			})
+		})
 	})
 
 	t.Run("GetToken", func(t *testing.T) {
