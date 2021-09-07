@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/RemeJuan/lattr/domain"
 	"github.com/RemeJuan/lattr/services"
@@ -28,9 +29,16 @@ func CreateToken(c *gin.Context) {
 }
 
 func GetToken(c *gin.Context) {
-	tkId, _ := GetIdFromParam(c)
+	paramId := GetParam(c, "id")
+	tkId, err := strconv.ParseInt(paramId, 10, 64)
 
-	result, getErr := services.AuthService.Get(*tkId)
+	if err != nil {
+		theErr := error_utils.UnprocessableEntityError("unable to parse ID")
+		c.JSON(theErr.Status(), theErr)
+		return
+	}
+
+	result, getErr := services.AuthService.Get(tkId)
 
 	if getErr != nil {
 		c.JSON(getErr.Status(), getErr)
@@ -51,14 +59,21 @@ func GetTokens(c *gin.Context) {
 }
 
 func ResetToken(c *gin.Context) {
-	tkId, _ := GetIdFromParam(c)
+	paramId := GetParam(c, "id")
+	tkId, err := strconv.ParseInt(paramId, 10, 64)
+
+	if err != nil {
+		theErr := error_utils.UnprocessableEntityError("unable to parse ID")
+		c.JSON(theErr.Status(), theErr)
+		return
+	}
 
 	var token domain.Token
-	token.Id = *tkId
+	token.Id = tkId
 
-	result, err := services.AuthService.Reset(&token)
-	if err != nil {
-		c.JSON(err.Status(), err)
+	result, resErr := services.AuthService.Reset(&token)
+	if resErr != nil {
+		c.JSON(resErr.Status(), resErr)
 		return
 	}
 
@@ -66,9 +81,16 @@ func ResetToken(c *gin.Context) {
 }
 
 func DeleteToken(c *gin.Context) {
-	tkId, _ := GetIdFromParam(c)
+	paramId := GetParam(c, "id")
+	tkId, parseErr := strconv.ParseInt(paramId, 10, 64)
 
-	if err := services.AuthService.Delete(*tkId); err != nil {
+	if parseErr != nil {
+		theErr := error_utils.UnprocessableEntityError("unable to parse ID")
+		c.JSON(theErr.Status(), theErr)
+		return
+	}
+
+	if err := services.AuthService.Delete(tkId); err != nil {
 		c.JSON(err.Status(), err)
 		return
 	}
