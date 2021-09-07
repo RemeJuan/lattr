@@ -21,10 +21,10 @@ func Router() {
 	tk := r.Group("/token")
 	{
 		tk.POST("/create", controllers.TokenCreateMiddleWare("token:create"), controllers.CreateToken)
-		tk.GET("/:id", controllers.GetToken)
-		tk.GET("/list", controllers.GetToken)
-		tk.PUT("/:id", controllers.ResetToken)
-		tk.DELETE("/:id", controllers.DeleteToken)
+		tk.GET("/:id", controllers.AuthenticateMiddleware("token:read"), controllers.GetToken)
+		tk.GET("/list", controllers.AuthenticateMiddleware("token:read"), controllers.GetTokens)
+		tk.PUT("/:id", controllers.AuthenticateMiddleware("token:update"), controllers.ResetToken)
+		tk.DELETE("/:id", controllers.AuthenticateMiddleware("token:delete"), controllers.DeleteToken)
 	}
 
 	r.POST("/webhook", controllers.WebHook)
