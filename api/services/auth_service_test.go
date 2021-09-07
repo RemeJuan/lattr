@@ -406,58 +406,19 @@ func TestAuthService_Delete(t *testing.T) {
 	})
 }
 
-func TestGenerateToken(t *testing.T) {
+func TestValidateToken(t *testing.T) {
 	currentTime = time.Date(2021, 8, 20, 13, 10, 0, 0, time.Local)
 
-	t.Run("Default", func(t *testing.T) {
-		_ = os.Setenv("JWT_SECRET", "RED")
-		_ = os.Setenv("JWT_VALIDITY_HOURS", "1")
-
-		token, err := GenerateToken("IFTTT", -0)
-
-		const result = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Mjk0NjE0MDAsImlhdCI6MTYyOTQ1NzgwMCwidXNlciI6IklGVFRUIn0._9KOnYFCUgREL3rwWPeGjE-0v4Nkh1AT0PzQCZyA0sw"
-
-		assert.Nil(t, err)
-		assert.NotNil(t, token)
-		assert.Equal(t, result, token)
-	})
-
-	t.Run("Specified validity", func(t *testing.T) {
-		_ = os.Setenv("JWT_SECRET", "RED")
-		_ = os.Setenv("JWT_VALIDITY_HOURS", "1")
-
-		token, err := GenerateToken("IFTTT", 2)
-
-		const result = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Mjk0NjUwMDAsImlhdCI6MTYyOTQ1NzgwMCwidXNlciI6IklGVFRUIn0.4eWQTTm-m11GCILIYmlX7Ac-OIWDVax44lz5roO8HY8"
-
-		assert.Nil(t, err)
-		assert.NotNil(t, token)
-		assert.Equal(t, result, token)
-	})
-
-	t.Run("Invalid env", func(t *testing.T) {
-		_ = os.Setenv("JWT_SECRET", "RED")
-		_ = os.Setenv("JWT_VALIDITY_HOURS", "")
-
-		token, err := GenerateToken("IFTTT", 0)
-
-		const result = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Mjk0NjE0MDAsImlhdCI6MTYyOTQ1NzgwMCwidXNlciI6IklGVFRUIn0._9KOnYFCUgREL3rwWPeGjE-0v4Nkh1AT0PzQCZyA0sw"
-
-		assert.Nil(t, err)
-		assert.NotNil(t, token)
-		assert.Equal(t, result, token)
-	})
-}
-
-func TestValidateToken(t *testing.T) {
 	activeTokens = []domain.Token{
 		{
-			Token:  "1",
-			Scopes: []string{"token:read", "token:create"},
+			Token:     "1",
+			Scopes:    []string{"token:read", "token:create"},
+			ExpiresAt: currentTime.Add(time.Hour * time.Duration(1)),
 		},
 		{
-			Token:  "2",
-			Scopes: []string{"token:read", "token:create"},
+			Token:     "2",
+			Scopes:    []string{"token:read", "token:create"},
+			ExpiresAt: currentTime.Add(time.Hour * time.Duration(1)),
 		},
 	}
 
@@ -475,5 +436,42 @@ func TestValidateToken(t *testing.T) {
 		result := AuthService.ValidateToken(&token, "token:read")
 
 		assert.Equal(t, false, result)
+	})
+}
+
+func TestTokenExpiryDate(t *testing.T) {
+	currentTime = time.Date(2021, 8, 20, 13, 10, 0, 0, time.Local)
+
+	t.Run("Default", func(t *testing.T) {
+		_ = os.Setenv("TOKEN_VALIDITY_HOURS", "1")
+
+		expiry := TokenExpiryDate(0)
+
+		result := time.Date(2021, 8, 20, 14, 10, 0, 0, time.Local)
+
+		assert.NotNil(t, expiry)
+		assert.Equal(t, result, expiry)
+	})
+
+	t.Run("Specified validity", func(t *testing.T) {
+		_ = os.Setenv("TOKEN_VALIDITY_HOURS", "1")
+
+		expiry := TokenExpiryDate(2)
+
+		result := time.Date(2021, 8, 20, 15, 10, 0, 0, time.Local)
+
+		assert.NotNil(t, expiry)
+		assert.Equal(t, result, expiry)
+	})
+
+	t.Run("Invalid env", func(t *testing.T) {
+		_ = os.Setenv("TOKEN_VALIDITY_HOURS", "")
+
+		expiry := TokenExpiryDate(0)
+
+		result := time.Date(2021, 8, 20, 14, 10, 0, 0, time.Local)
+
+		assert.NotNil(t, expiry)
+		assert.Equal(t, result, expiry)
 	})
 }

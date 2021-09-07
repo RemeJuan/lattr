@@ -7,13 +7,13 @@ import (
 
 	"github.com/RemeJuan/lattr/domain"
 	"github.com/RemeJuan/lattr/utils/error_utils"
-	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 )
 
 var (
 	AuthService  authServiceInterface = &authService{}
-	currentTime                       = time.Now().Local()
 	activeTokens []domain.Token
+	currentTime  = time.Now().Local()
 )
 
 type authService struct{}
@@ -32,10 +32,11 @@ func (as authService) Create(token *domain.Token) (*domain.Token, error_utils.Me
 		return nil, err
 	}
 
-	generated, _ := GenerateToken(token.Name, token.Validity)
+	generated := uuid.New().String()
 	token.Token = generated
 	token.CreatedAt = time.Now().Local()
 	token.Modified = time.Now().Local()
+	token.ExpiresAt = TokenExpiryDate(token.Validity)
 
 	tk, err := domain.TokenRepo.Create(token)
 	if err != nil {
@@ -72,6 +73,7 @@ func (as authService) Reset(token *domain.Token) (*domain.Token, error_utils.Mes
 
 	current.Token = token.Token
 	current.Modified = time.Now().Local()
+	token.ExpiresAt = TokenExpiryDate(token.Validity)
 
 	updated, err := domain.TokenRepo.Reset(current)
 
@@ -103,20 +105,19 @@ func (as authService) Delete(i int64) error_utils.MessageErr {
 func (as authService) ValidateToken(token *domain.Token, requiredScope string) bool {
 	for _, val := range activeTokens {
 		if val.Token == token.Token {
-			return containsRequiredScope(&val, requiredScope)
+			return containsRequiredScope(&val, requiredScope) && val.ExpiresAt.After(currentTime)
 		}
 	}
 
 	return false
 }
 
-func GenerateToken(name string, validity int) (string, error) {
-	appKey := os.Getenv("JWT_SECRET")
-	jvh := os.Getenv("JWT_VALIDITY_HOURS")
+func TokenExpiryDate(validity int) time.Time {
+	tvh := os.Getenv("TOKEN_VALIDITY_HOURS")
 	dur := validity
 
 	if validity == 0 {
-		t, err := strconv.ParseInt(jvh, 10, 0)
+		t, err := strconv.ParseInt(tvh, 10, 0)
 
 		if err != nil {
 			dur = 1
@@ -125,15 +126,7 @@ func GenerateToken(name string, validity int) (string, error) {
 		}
 	}
 
-	claims := jwt.MapClaims{
-		"user": name,
-		"exp":  currentTime.Add(time.Hour * time.Duration(dur)).Unix(),
-		"iat":  currentTime.Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	return token.SignedString([]byte(appKey))
+	return currentTime.Add(time.Hour * time.Duration(dur)).Local()
 }
 
 func updateInMemoryTokens(adding *domain.Token, removing *domain.Token) {
