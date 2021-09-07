@@ -20,7 +20,7 @@ func Router() {
 
 	tk := r.Group("/token")
 	{
-		tk.POST("/create", controllers.TokenCreateMiddleWare(), controllers.CreateToken)
+		tk.POST("/create", controllers.TokenCreateMiddleWare("token:create"), controllers.CreateToken)
 		tk.GET("/:id", controllers.GetToken)
 		tk.GET("/list", controllers.GetToken)
 		tk.PUT("/:id", controllers.ResetToken)
