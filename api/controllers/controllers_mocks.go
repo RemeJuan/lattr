@@ -18,6 +18,7 @@ var (
 	listTokensService      func() ([]domain.Token, error_utils.MessageErr)
 	resetTokensService     func(token *domain.Token) (*domain.Token, error_utils.MessageErr)
 	deleteTokensService    func(id int64) error_utils.MessageErr
+	validateTokenService   func(token *domain.Token, requiredScope string) bool
 )
 
 type tweetServiceMock struct {
@@ -74,5 +75,5 @@ func (asm *authServiceMock) Delete(id int64) error_utils.MessageErr {
 }
 
 func (asm *authServiceMock) ValidateToken(token *domain.Token, requiredScope string) bool {
-	return true
+	return validateTokenService(token, requiredScope)
 }
