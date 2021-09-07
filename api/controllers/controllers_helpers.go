@@ -48,7 +48,7 @@ func TokenCreateMiddleWare(requiredScope string) gin.HandlerFunc {
 	}
 }
 
-func AuthenticateJWTMiddleware(requiredScope string) gin.HandlerFunc {
+func AuthenticateMiddleware(requiredScope string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		isValid := AuthenticateToken(c, requiredScope)
 
