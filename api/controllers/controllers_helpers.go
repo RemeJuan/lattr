@@ -35,7 +35,7 @@ func TokenCreateMiddleWare(requiredScope string) gin.HandlerFunc {
 		if tokenCreate == "OPEN" {
 			c.Next()
 		} else if tokenCreate == "SCOPED" {
-			isValid := AuthenticateJWTToken(c, requiredScope)
+			isValid := AuthenticateToken(c, requiredScope)
 
 			if isValid {
 				c.Next()
@@ -50,7 +50,7 @@ func TokenCreateMiddleWare(requiredScope string) gin.HandlerFunc {
 
 func AuthenticateJWTMiddleware(requiredScope string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		isValid := AuthenticateJWTToken(c, requiredScope)
+		isValid := AuthenticateToken(c, requiredScope)
 
 		if isValid {
 			c.Next()
@@ -62,13 +62,13 @@ func AuthenticateJWTMiddleware(requiredScope string) gin.HandlerFunc {
 	}
 }
 
-func AuthenticateJWTToken(c *gin.Context, requiredScope string) bool {
-	jwtToken := ExtractJWTToken(c)
+func AuthenticateToken(c *gin.Context, requiredScope string) bool {
+	jwtToken := ExtractToken(c)
 
 	return services.AuthService.ValidateToken(&domain.Token{Token: jwtToken}, requiredScope)
 }
 
-func ExtractJWTToken(c *gin.Context) string {
+func ExtractToken(c *gin.Context) string {
 	tokenString := c.GetHeader("Authorization")
 
 	tokenString = stripTokenPrefix(tokenString)
