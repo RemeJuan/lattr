@@ -34,8 +34,8 @@ func (as authService) Create(token *domain.Token) (*domain.Token, error_utils.Me
 
 	generated := uuid.New().String()
 	token.Token = generated
-	token.CreatedAt = time.Now().Local()
-	token.Modified = time.Now().Local()
+	token.CreatedAt = currentTime
+	token.Modified = currentTime
 	token.ExpiresAt = TokenExpiryDate(token.Validity)
 
 	tk, err := domain.TokenRepo.Create(token)
