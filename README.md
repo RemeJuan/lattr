@@ -72,7 +72,7 @@ ENABLE_CREATE=
 * INTERVAL - when type is set as INTERVAL, provide a number to denote hours between posts, eg 3.
 * CRON_SCHEDULE - Cron string to control the schedulers checking of the DB for pending posts, default: "*/5 6-18 * * *"
 * TOKEN_VALIDITY_HOURS - Default number of hours a token is valid for, can be overridden with the create request
-* ENABLE_CREATE - Enables the tokens create endpoint (true|false)
+* ENABLE_CREATE - Defines how token create endpoint works (OPEN|SCOPED|DISABLED)
 
 The following scopes are available for the various endpoints:
 
