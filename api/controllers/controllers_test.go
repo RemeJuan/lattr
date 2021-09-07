@@ -812,6 +812,8 @@ func TestAuthControllers(t *testing.T) {
 	})
 
 	t.Run("GetTokens", func(t *testing.T) {
+		middleware := AuthenticateMiddleware("token:read")
+
 		t.Run("Success", func(t *testing.T) {
 			services.AuthService = &authServiceMock{}
 
@@ -820,12 +822,14 @@ func TestAuthControllers(t *testing.T) {
 					mockTokenResponse,
 				}, nil
 			}
-
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 			r := gin.Default()
 			path := fmt.Sprintf("%s/list", tokenPath)
 			req, _ := http.NewRequest(http.MethodGet, path, nil)
 			rr := httptest.NewRecorder()
-			r.GET("token/list", GetTokens)
+			r.GET("token/list", middleware, GetTokens)
 			r.ServeHTTP(rr, req)
 
 			var tokens []domain.Token
@@ -843,12 +847,14 @@ func TestAuthControllers(t *testing.T) {
 			listTokensService = func() ([]domain.Token, error_utils.MessageErr) {
 				return nil, error_utils.NotFoundError("No results")
 			}
-
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 			r := gin.Default()
 			path := fmt.Sprintf("%s/list", tokenPath)
 			req, _ := http.NewRequest(http.MethodGet, path, nil)
 			rr := httptest.NewRecorder()
-			r.GET("token/list", GetTokens)
+			r.GET("token/list", middleware, GetTokens)
 			r.ServeHTTP(rr, req)
 
 			result, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -859,21 +865,45 @@ func TestAuthControllers(t *testing.T) {
 			assert.EqualValues(t, "not_found", result.Error())
 			assert.EqualValues(t, "No results", result.Message())
 		})
+
+		t.Run("Invalid token", func(t *testing.T) {
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return false
+			}
+
+			r := gin.Default()
+			path := fmt.Sprintf("%s/list", tokenPath)
+			req, _ := http.NewRequest(http.MethodGet, path, nil)
+			rr := httptest.NewRecorder()
+			r.GET("token/list", middleware, GetTokens)
+			r.ServeHTTP(rr, req)
+
+			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+			assert.EqualValues(t, http.StatusForbidden, msgErr.Status())
+			assert.EqualValues(t, "Invalid or missing token", msgErr.Message())
+			assert.EqualValues(t, "bad_request", msgErr.Error())
+		})
 	})
 
 	t.Run("ResetToken", func(t *testing.T) {
+		middleware := AuthenticateMiddleware("token:update")
+
 		t.Run("Success", func(t *testing.T) {
 			services.AuthService = &authServiceMock{}
 
 			resetTokensService = func(token *domain.Token) (*domain.Token, error_utils.MessageErr) {
 				return &mockTokenResponse, nil
 			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tokenPath, mockId)
 			req, _ := http.NewRequest(http.MethodPut, path, nil)
 			rr := httptest.NewRecorder()
-			r.PUT("/token/:id", ResetToken)
+			r.PUT("/token/:id", middleware, ResetToken)
 			r.ServeHTTP(rr, req)
 
 			var token domain.Token
@@ -890,12 +920,11 @@ func TestAuthControllers(t *testing.T) {
 			services.AuthService = &authServiceMock{}
 
 			const invalidId = "red"
-
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tokenPath, invalidId)
 			req, _ := http.NewRequest(http.MethodPut, path, nil)
 			rr := httptest.NewRecorder()
-			r.PUT("/token/:id", ResetToken)
+			r.PUT("/token/:id", middleware, ResetToken)
 			r.ServeHTTP(rr, req)
 
 			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -911,12 +940,15 @@ func TestAuthControllers(t *testing.T) {
 			resetTokensService = func(token *domain.Token) (*domain.Token, error_utils.MessageErr) {
 				return nil, error_utils.NotFoundError("unable to find item")
 			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tokenPath, mockId)
 			req, _ := http.NewRequest(http.MethodPut, path, nil)
 			rr := httptest.NewRecorder()
-			r.PUT("/token/:id", ResetToken)
+			r.PUT("/token/:id", middleware, ResetToken)
 			r.ServeHTTP(rr, req)
 
 			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -925,21 +957,45 @@ func TestAuthControllers(t *testing.T) {
 			assert.EqualValues(t, "unable to find item", msgErr.Message())
 			assert.EqualValues(t, "not_found", msgErr.Error())
 		})
+
+		t.Run("Invalid token", func(t *testing.T) {
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return false
+			}
+
+			r := gin.Default()
+			path := fmt.Sprintf("%s/%v", tokenPath, mockId)
+			req, _ := http.NewRequest(http.MethodPut, path, nil)
+			rr := httptest.NewRecorder()
+			r.PUT("/token/:id", middleware, ResetToken)
+			r.ServeHTTP(rr, req)
+
+			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+			assert.EqualValues(t, http.StatusForbidden, msgErr.Status())
+			assert.EqualValues(t, "Invalid or missing token", msgErr.Message())
+			assert.EqualValues(t, "bad_request", msgErr.Error())
+		})
 	})
 
 	t.Run("DeleteToken", func(t *testing.T) {
+		middleware := AuthenticateMiddleware("token:delete")
+
 		t.Run("Success", func(t *testing.T) {
 			services.AuthService = &authServiceMock{}
 
 			deleteTokensService = func(id int64) error_utils.MessageErr {
 				return nil
 			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tokenPath, mockId)
 			req, _ := http.NewRequest(http.MethodDelete, path, nil)
 			rr := httptest.NewRecorder()
-			r.DELETE("/token/:id", DeleteToken)
+			r.DELETE("/token/:id", middleware, DeleteToken)
 			r.ServeHTTP(rr, req)
 
 			var result map[string]string
@@ -954,15 +1010,19 @@ func TestAuthControllers(t *testing.T) {
 			services.AuthService = &authServiceMock{}
 
 			const invalidId = "red"
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
+
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tokenPath, invalidId)
 			req, _ := http.NewRequest(http.MethodDelete, path, nil)
 			rr := httptest.NewRecorder()
-			r.DELETE("/token/:id", DeleteToken)
+			r.DELETE("/token/:id", middleware, DeleteToken)
 			r.ServeHTTP(rr, req)
 
 			apiErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
-
+			fmt.Println(apiErr)
 			assert.EqualValues(t, http.StatusUnprocessableEntity, rr.Code)
 			assert.EqualValues(t, rr.Code, apiErr.Status())
 			assert.Equal(t, "unable to parse ID", apiErr.Message())
@@ -975,12 +1035,15 @@ func TestAuthControllers(t *testing.T) {
 			deleteTokensService = func(id int64) error_utils.MessageErr {
 				return error_utils.InternalServerError("Unable to delete record")
 			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tokenPath, mockId)
 			req, _ := http.NewRequest(http.MethodDelete, path, nil)
 			rr := httptest.NewRecorder()
-			r.DELETE("/token/:id", DeleteToken)
+			r.DELETE("/token/:id", middleware, DeleteToken)
 			r.ServeHTTP(rr, req)
 
 			apiErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -989,6 +1052,25 @@ func TestAuthControllers(t *testing.T) {
 			assert.EqualValues(t, rr.Code, apiErr.Status())
 			assert.Equal(t, "Unable to delete record", apiErr.Message())
 			assert.Equal(t, "server_error", apiErr.Error())
+		})
+
+		t.Run("Invalid token", func(t *testing.T) {
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return false
+			}
+
+			r := gin.Default()
+			path := fmt.Sprintf("%s/%v", tokenPath, mockId)
+			req, _ := http.NewRequest(http.MethodDelete, path, nil)
+			rr := httptest.NewRecorder()
+			r.DELETE("/token/:id", middleware, DeleteToken)
+			r.ServeHTTP(rr, req)
+
+			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+			assert.EqualValues(t, http.StatusForbidden, msgErr.Status())
+			assert.EqualValues(t, "Invalid or missing token", msgErr.Message())
+			assert.EqualValues(t, "bad_request", msgErr.Error())
 		})
 	})
 }
