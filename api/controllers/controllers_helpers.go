@@ -28,16 +28,22 @@ func GetParam(c *gin.Context, paramName string) string {
 	return c.Params.ByName(paramName)
 }
 
-func TokenCreateMiddleWare() gin.HandlerFunc {
+func TokenCreateMiddleWare(requiredScope string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		isEnabled, _ := strconv.ParseBool(os.Getenv("ENABLE_CREATE"))
+		tokenCreate := os.Getenv("ENABLE_CREATE")
 
-		if isEnabled {
+		if tokenCreate == "OPEN" {
 			c.Next()
+		} else if tokenCreate == "SCOPED" {
+			isValid := AuthenticateJWTToken(c, requiredScope)
+
+			if isValid {
+				c.Next()
+			} else {
+				tokenCreateErr(c)
+			}
 		} else {
-			err := error_utils.NotImplementedError("Token creation not enabled for this app")
-			c.JSON(err.Status(), err)
-			c.Abort()
+			tokenCreateErr(c)
 		}
 	}
 }
@@ -79,4 +85,10 @@ func stripTokenPrefix(tok string) string {
 	}
 
 	return tokenParts[1]
+}
+
+func tokenCreateErr(c *gin.Context) {
+	err := error_utils.NotImplementedError("Token creation not enabled for this app")
+	c.JSON(err.Status(), err)
+	c.Abort()
 }
