@@ -16,9 +16,9 @@ var (
 
 var (
 	queryCreateToken = "INSERT INTO tokens(Name, Token, Scopes, ExpiresAt, CreatedAt, Modified)  VALUES($1, $2, $3, $4, $5, $6) RETURNING id;"
-	queryGetToken    = "SELECT name, token, scopes, expiresAt, createdAt, Modified FROM tokens WHERE id=$1;"
+	queryGetToken    = "SELECT id, name, token, scopes, expiresAt, createdAt, Modified FROM tokens WHERE id=$1;"
 	queryListTokens  = "SELECT * FROM tokens"
-	queryResetToken  = "UPDATE tokens SET token=$2, expiresAt=$3 modified=$4 WHERE id=$1;"
+	queryResetToken  = "UPDATE tokens SET token=$2, expiresAt=$3, modified=$4 WHERE id=$1;"
 	queryDeleteToken = "DELETE FROM tokens where id=$1"
 )
 
