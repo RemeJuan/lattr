@@ -117,7 +117,7 @@ func (tr *tokenRepo) List() ([]Token, error_utils.MessageErr) {
 
 	for rows.Next() {
 		var token Token
-		if getError := rows.Scan(&token.Id, &token.Name, &token.Token, &token.CreatedAt, &token.Modified); getError != nil {
+		if getError := rows.Scan(&token.Id, &token.Name, &token.Token, pq.Array(&token.Scopes), &token.ExpiresAt, &token.CreatedAt, &token.Modified); getError != nil {
 			message := fmt.Sprintf("Error when trying to get message: %s", getError.Error())
 			return nil, error_utils.InternalServerError(message)
 		}

@@ -195,6 +195,8 @@ func TestTokenRepo_List(t *testing.T) {
 				Id:        mockTokenId,
 				Name:      mockTokenName,
 				Token:     mockToken,
+				Scopes:    sc,
+				ExpiresAt: exp,
 				CreatedAt: ct,
 				Modified:  mt,
 			},
@@ -202,12 +204,14 @@ func TestTokenRepo_List(t *testing.T) {
 				Id:        mockTokenId,
 				Name:      mockTokenName,
 				Token:     mockToken,
+				Scopes:    sc,
+				ExpiresAt: exp,
 				CreatedAt: ct,
 				Modified:  mt,
 			},
 		}
 		const sqlQuery = "SELECT (.+) FROM tokens"
-		sqlReturn := sqlmock.NewRows([]string{"id", "name", "token", "createdAt", "modified"}).AddRow(mockTokenId, mockTokenName, mockToken, ct, mt).AddRow(mockTokenId, mockTokenName, mockToken, ct, mt)
+		sqlReturn := sqlmock.NewRows([]string{"id", "name", "token", "scopes", "expiresAt", "createdAt", "modified"}).AddRow(mockTokenId, mockTokenName, mockToken, pq.Array(sc), exp, ct, mt).AddRow(mockTokenId, mockTokenName, mockToken, pq.Array(sc), exp, ct, mt)
 		mock.ExpectPrepare(sqlQuery).ExpectQuery().WillReturnRows(sqlReturn)
 
 		result, crErr := s.List()
@@ -268,9 +272,9 @@ func TestTokenRepo_List(t *testing.T) {
 
 		s := InitTokenRepository(db)
 
-		const expected = "Error when trying to get message: sql: Scan error on column index 3, name \"createdAt\": unsupported Scan, storing driver.Value type string into type *time.Time"
+		const expected = "Error when trying to get message: sql: Scan error on column index 5, name \"createdAt\": unsupported Scan, storing driver.Value type string into type *time.Time"
 		const sqlQuery = "SELECT (.+) FROM tokens"
-		sqlReturn := sqlmock.NewRows([]string{"id", "name", "token", "createdAt", "modified"}).AddRow(mockTokenId, mockTokenName, mockToken, "CreatedAt", mt)
+		sqlReturn := sqlmock.NewRows([]string{"id", "name", "token", "scopes", "expiresAt", "createdAt", "modified"}).AddRow(mockTokenId, mockTokenName, mockToken, pq.Array(sc), exp, "CreatedAt", mt)
 		mock.ExpectPrepare(sqlQuery).ExpectQuery().WillReturnRows(sqlReturn)
 
 		result, crErr := s.List()
