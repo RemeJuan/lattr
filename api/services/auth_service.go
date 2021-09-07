@@ -32,8 +32,7 @@ func (as authService) Create(token *domain.Token) (*domain.Token, error_utils.Me
 		return nil, err
 	}
 
-	generated := uuid.New().String()
-	token.Token = generated
+	token.Token = uuid.New().String()
 	token.CreatedAt = currentTime
 	token.Modified = currentTime
 	token.ExpiresAt = TokenExpiryDate(token.Validity)
@@ -71,7 +70,7 @@ func (as authService) Reset(token *domain.Token) (*domain.Token, error_utils.Mes
 		return nil, err
 	}
 
-	current.Token = token.Token
+	current.Token = uuid.New().String()
 	current.Modified = time.Now().Local()
 	token.ExpiresAt = TokenExpiryDate(token.Validity)
 
@@ -103,6 +102,9 @@ func (as authService) Delete(i int64) error_utils.MessageErr {
 }
 
 func (as authService) ValidateToken(token *domain.Token, requiredScope string) bool {
+	if len(activeTokens) == 0 {
+		as.List()
+	}
 	for _, val := range activeTokens {
 		if val.Token == token.Token {
 			return containsRequiredScope(&val, requiredScope) && val.ExpiresAt.After(currentTime)
