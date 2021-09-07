@@ -564,7 +564,8 @@ func TestAuthControllers(t *testing.T) {
 		Modified:  mockDate,
 	}
 	t.Run("CreateToken", func(t *testing.T) {
-		_ = os.Setenv("ENABLE_CREATE", "true")
+		_ = os.Setenv("ENABLE_CREATE", "OPEN")
+		middleware := TokenCreateMiddleWare("token:create")
 
 		t.Run("Success", func(t *testing.T) {
 			services.AuthService = &authServiceMock{}
@@ -579,7 +580,7 @@ func TestAuthControllers(t *testing.T) {
 				t.Errorf("this is the error: %v\n", err)
 			}
 			rr := httptest.NewRecorder()
-			r.POST(tokenPath, TokenCreateMiddleWare(), CreateToken)
+			r.POST(tokenPath, middleware, CreateToken)
 			r.ServeHTTP(rr, req)
 
 			var token domain.Token
@@ -600,7 +601,7 @@ func TestAuthControllers(t *testing.T) {
 				t.Errorf("this is the error: %v\n", err)
 			}
 			rr := httptest.NewRecorder()
-			r.POST(tokenPath, TokenCreateMiddleWare(), CreateToken)
+			r.POST(tokenPath, middleware, CreateToken)
 			r.ServeHTTP(rr, req)
 
 			apiErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -624,7 +625,7 @@ func TestAuthControllers(t *testing.T) {
 				t.Errorf("this is the error: %v\n", err)
 			}
 			rr := httptest.NewRecorder()
-			r.POST(tokenPath, TokenCreateMiddleWare(), CreateToken)
+			r.POST(tokenPath, middleware, CreateToken)
 			r.ServeHTTP(rr, req)
 
 			msgErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -634,8 +635,39 @@ func TestAuthControllers(t *testing.T) {
 			assert.EqualValues(t, "invalid_request", msgErr.Error())
 		})
 
+		t.Run("Scoped Create", func(t *testing.T) {
+			_ = os.Setenv("ENABLE_CREATE", "SCOPED")
+			services.AuthService = &authServiceMock{}
+
+			createTokenService = func(token *domain.Token) (*domain.Token, error_utils.MessageErr) {
+				return &mockTokenResponse, nil
+			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
+			jsonBody := `{"name": "token", "scope": ["token:create"]}`
+			r := gin.Default()
+			req, err := http.NewRequest(http.MethodPost, tokenPath, bytes.NewBufferString(jsonBody))
+			if err != nil {
+				t.Errorf("this is the error: %v\n", err)
+			}
+			rr := httptest.NewRecorder()
+			rr.Header().Add("Authorization", "Bearer mock-token")
+			r.POST(tokenPath, middleware, CreateToken)
+			r.ServeHTTP(rr, req)
+
+			var token domain.Token
+			err = json.Unmarshal(rr.Body.Bytes(), &token)
+			assert.Nil(t, err)
+			assert.NotNil(t, token)
+			assert.EqualValues(t, http.StatusCreated, rr.Code)
+			assert.EqualValues(t, mockId, token.Id)
+			assert.EqualValues(t, mockName, token.Name)
+			assert.EqualValues(t, mockScopes, token.Scopes)
+		})
+
 		t.Run("Create Not Allowed", func(t *testing.T) {
-			_ = os.Setenv("ENABLE_CREATE", "false")
+			_ = os.Setenv("ENABLE_CREATE", "DISABLED")
 			services.AuthService = &authServiceMock{}
 
 			createTokenService = func(token *domain.Token) (*domain.Token, error_utils.MessageErr) {
@@ -648,7 +680,7 @@ func TestAuthControllers(t *testing.T) {
 				t.Errorf("this is the error: %v\n", err)
 			}
 			rr := httptest.NewRecorder()
-			r.POST(tokenPath, TokenCreateMiddleWare(), CreateToken)
+			r.POST(tokenPath, middleware, CreateToken)
 			r.ServeHTTP(rr, req)
 
 			apiErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
