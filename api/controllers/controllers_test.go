@@ -723,18 +723,22 @@ func TestAuthControllers(t *testing.T) {
 	})
 
 	t.Run("GetToken", func(t *testing.T) {
+		middleware := AuthenticateMiddleware("token:read")
+
 		t.Run("Success", func(t *testing.T) {
 			services.AuthService = &authServiceMock{}
 
 			getTokenService = func(id int64) (*domain.Token, error_utils.MessageErr) {
 				return &mockTokenResponse, nil
 			}
-
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tokenPath, mockId)
 			req, _ := http.NewRequest(http.MethodGet, path, nil)
 			rr := httptest.NewRecorder()
-			r.GET("token/:id", GetToken)
+			r.GET("token/:id", middleware, GetToken)
 			r.ServeHTTP(rr, req)
 
 			var token domain.Token
@@ -757,7 +761,7 @@ func TestAuthControllers(t *testing.T) {
 			path := fmt.Sprintf("%s/%v", tokenPath, invalidId)
 			req, _ := http.NewRequest(http.MethodGet, path, nil)
 			rr := httptest.NewRecorder()
-			r.GET("token/:id", GetToken)
+			r.GET("token/:id", middleware, GetToken)
 			r.ServeHTTP(rr, req)
 
 			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -777,14 +781,33 @@ func TestAuthControllers(t *testing.T) {
 			path := fmt.Sprintf("%s/%v", tokenPath, mockId)
 			req, _ := http.NewRequest(http.MethodGet, path, nil)
 			rr := httptest.NewRecorder()
-			r.GET("token/:id", GetToken)
+			r.GET("token/:id", middleware, GetToken)
 			r.ServeHTTP(rr, req)
 
 			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
-			fmt.Println(msgErr)
+
 			assert.EqualValues(t, http.StatusNotFound, msgErr.Status())
 			assert.EqualValues(t, "unable to find item", msgErr.Message())
 			assert.EqualValues(t, "not_found", msgErr.Error())
+		})
+
+		t.Run("Invalid token", func(t *testing.T) {
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return false
+			}
+
+			r := gin.Default()
+			path := fmt.Sprintf("%s/%v", tokenPath, mockId)
+			req, _ := http.NewRequest(http.MethodGet, path, nil)
+			rr := httptest.NewRecorder()
+			r.GET("token/:id", middleware, GetToken)
+			r.ServeHTTP(rr, req)
+
+			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
+
+			assert.EqualValues(t, http.StatusForbidden, msgErr.Status())
+			assert.EqualValues(t, "Invalid or missing token", msgErr.Message())
+			assert.EqualValues(t, "bad_request", msgErr.Error())
 		})
 	})
 
