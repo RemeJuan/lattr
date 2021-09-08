@@ -102,9 +102,6 @@ func (as authService) Delete(i int64) error_utils.MessageErr {
 }
 
 func (as authService) ValidateToken(token *domain.Token, requiredScope string) bool {
-	if len(activeTokens) == 0 {
-		as.List()
-	}
 	for _, val := range activeTokens {
 		if val.Token == token.Token {
 			return containsRequiredScope(&val, requiredScope) && val.ExpiresAt.After(currentTime)
