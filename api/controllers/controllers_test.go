@@ -30,8 +30,11 @@ func TestTweets(t *testing.T) {
 	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
 
 	t.Run("CreateTweet", func(t *testing.T) {
+		middleware := AuthenticateMiddleware("tweet:create")
+
 		t.Run("Success", func(t *testing.T) {
 			services.TweetService = &tweetServiceMock{}
+			services.AuthService = &authServiceMock{}
 
 			const msg = "the message"
 
@@ -42,6 +45,9 @@ func TestTweets(t *testing.T) {
 					PostTime: postTime,
 				}, nil
 			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 			jsonBody := `{"title": "the title", "body": "the body"}`
 			r := gin.Default()
 			req, err := http.NewRequest(http.MethodPost, tweetPath, bytes.NewBufferString(jsonBody))
@@ -49,7 +55,7 @@ func TestTweets(t *testing.T) {
 				t.Errorf("this is the error: %v\n", err)
 			}
 			rr := httptest.NewRecorder()
-			r.POST(tweetPath, CreateTweet)
+			r.POST(tweetPath, middleware, CreateTweet)
 			r.ServeHTTP(rr, req)
 
 			var tweet domain.Tweet
@@ -69,8 +75,11 @@ func TestTweets(t *testing.T) {
 			if err != nil {
 				t.Errorf("this is the error: %v\n", err)
 			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 			rr := httptest.NewRecorder()
-			r.POST("/tweets", CreateTweet)
+			r.POST("/tweets", middleware, CreateTweet)
 			r.ServeHTTP(rr, req)
 
 			apiErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -87,6 +96,9 @@ func TestTweets(t *testing.T) {
 			createTweetService = func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
 				return nil, error_utils.UnprocessableEntityError("Body cannot be empty")
 			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 			jsonBody := `{}`
 			r := gin.Default()
 			req, err := http.NewRequest(http.MethodPost, tweetPath, bytes.NewBufferString(jsonBody))
@@ -94,7 +106,7 @@ func TestTweets(t *testing.T) {
 				t.Errorf("this is the error: %v\n", err)
 			}
 			rr := httptest.NewRecorder()
-			r.POST(tweetPath, CreateTweet)
+			r.POST(tweetPath, middleware, CreateTweet)
 			r.ServeHTTP(rr, req)
 
 			msgErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -106,8 +118,11 @@ func TestTweets(t *testing.T) {
 	})
 
 	t.Run("GetTweet", func(t *testing.T) {
+		middleware := AuthenticateMiddleware("tweet:read")
+
 		t.Run("Success", func(t *testing.T) {
 			services.TweetService = &tweetServiceMock{}
+			services.AuthService = &authServiceMock{}
 
 			const message = "the message"
 
@@ -119,12 +134,15 @@ func TestTweets(t *testing.T) {
 					Status:   domain.Pending,
 				}, nil
 			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tweetPath, recordId)
 			req, _ := http.NewRequest(http.MethodGet, path, nil)
 			rr := httptest.NewRecorder()
-			r.GET("/tweets/:id", GetTweet)
+			r.GET("/tweets/:id", middleware, GetTweet)
 			r.ServeHTTP(rr, req)
 
 			var tweet domain.Tweet
@@ -141,14 +159,18 @@ func TestTweets(t *testing.T) {
 
 		t.Run("Cannot parse ID", func(t *testing.T) {
 			services.TweetService = &tweetServiceMock{}
+			services.AuthService = &authServiceMock{}
 
 			const invalidID = "red"
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tweetPath, invalidID)
 			req, _ := http.NewRequest(http.MethodGet, path, nil)
 			rr := httptest.NewRecorder()
-			r.GET("/tweets/:id", GetTweet)
+			r.GET("/tweets/:id", middleware, GetTweet)
 			r.ServeHTTP(rr, req)
 
 			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -160,16 +182,20 @@ func TestTweets(t *testing.T) {
 
 		t.Run("Error", func(t *testing.T) {
 			services.TweetService = &tweetServiceMock{}
+			services.AuthService = &authServiceMock{}
 
 			getTweetService = func(msgId int64) (*domain.Tweet, error_utils.MessageErr) {
 				return nil, error_utils.NotFoundError("unable to find item")
+			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
 			}
 
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tweetPath, recordId)
 			req, _ := http.NewRequest(http.MethodGet, path, nil)
 			rr := httptest.NewRecorder()
-			r.GET("/tweets/:id", GetTweet)
+			r.GET("/tweets/:id", middleware, GetTweet)
 			r.ServeHTTP(rr, req)
 
 			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -181,8 +207,11 @@ func TestTweets(t *testing.T) {
 	})
 
 	t.Run("GetTweets", func(t *testing.T) {
+		middleware := AuthenticateMiddleware("tweet:read")
+
 		t.Run("Success", func(t *testing.T) {
 			services.TweetService = &tweetServiceMock{}
+			services.AuthService = &authServiceMock{}
 
 			const message = "the message"
 			const userId = "test"
@@ -203,12 +232,15 @@ func TestTweets(t *testing.T) {
 					},
 				}, nil
 			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 
 			r := gin.Default()
 			path := fmt.Sprintf("%s/all/%v", tweetPath, userId)
 			req, _ := http.NewRequest(http.MethodGet, path, nil)
 			rr := httptest.NewRecorder()
-			r.GET("/tweets/all/:userId", GetTweets)
+			r.GET("/tweets/all/:userId", middleware, GetTweets)
 			r.ServeHTTP(rr, req)
 
 			var tweets []domain.Tweet
@@ -230,18 +262,22 @@ func TestTweets(t *testing.T) {
 
 		t.Run("Error", func(t *testing.T) {
 			services.TweetService = &tweetServiceMock{}
+			services.AuthService = &authServiceMock{}
 
 			const userId = "test"
 
 			getAllTweetService = func(userId string) ([]domain.Tweet, error_utils.MessageErr) {
 				return nil, error_utils.NotFoundError("No results")
 			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 
 			r := gin.Default()
 			path := fmt.Sprintf("%s/all/%v", tweetPath, userId)
 			req, _ := http.NewRequest(http.MethodGet, path, nil)
 			rr := httptest.NewRecorder()
-			r.GET("/tweets/all/:userId", GetTweets)
+			r.GET("/tweets/all/:userId", middleware, GetTweets)
 			r.ServeHTTP(rr, req)
 
 			apiErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -255,8 +291,11 @@ func TestTweets(t *testing.T) {
 	})
 
 	t.Run("UpdateTweet", func(t *testing.T) {
+		middleware := AuthenticateMiddleware("tweet:update")
+
 		t.Run("Success", func(t *testing.T) {
 			services.TweetService = &tweetServiceMock{}
+			services.AuthService = &authServiceMock{}
 
 			const message = "different message"
 
@@ -268,12 +307,15 @@ func TestTweets(t *testing.T) {
 					Status:   domain.Pending,
 				}, nil
 			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 			inputJson := `{"message": "different message"}`
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tweetPath, recordId)
 			req, _ := http.NewRequest(http.MethodPut, path, bytes.NewBufferString(inputJson))
 			rr := httptest.NewRecorder()
-			r.PUT("/tweets/:id", UpdateTweet)
+			r.PUT("/tweets/:id", middleware, UpdateTweet)
 			r.ServeHTTP(rr, req)
 
 			var tweet domain.Tweet
@@ -290,15 +332,19 @@ func TestTweets(t *testing.T) {
 
 		t.Run("Cannot parse ID", func(t *testing.T) {
 			services.TweetService = &tweetServiceMock{}
+			services.AuthService = &authServiceMock{}
 
 			const invalidID = "red"
 
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 			inputJson := `{"message": "different message"}`
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tweetPath, invalidID)
 			req, _ := http.NewRequest(http.MethodPut, path, bytes.NewBufferString(inputJson))
 			rr := httptest.NewRecorder()
-			r.PUT("/tweets/:id", UpdateTweet)
+			r.PUT("/tweets/:id", middleware, UpdateTweet)
 			r.ServeHTTP(rr, req)
 
 			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -310,13 +356,18 @@ func TestTweets(t *testing.T) {
 
 		t.Run("Invalid JSON", func(t *testing.T) {
 			services.TweetService = &tweetServiceMock{}
+			services.AuthService = &authServiceMock{}
 
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+
+				return true
+			}
 			inputJson := ""
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tweetPath, recordId)
 			req, _ := http.NewRequest(http.MethodPut, path, bytes.NewBufferString(inputJson))
 			rr := httptest.NewRecorder()
-			r.PUT("/tweets/:id", UpdateTweet)
+			r.PUT("/tweets/:id", middleware, UpdateTweet)
 			r.ServeHTTP(rr, req)
 
 			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -328,17 +379,20 @@ func TestTweets(t *testing.T) {
 
 		t.Run("Error", func(t *testing.T) {
 			services.TweetService = &tweetServiceMock{}
+			services.AuthService = &authServiceMock{}
 
 			updateTweetService = func(tweet *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
 				return nil, error_utils.NotFoundError("unable to find item")
 			}
-
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
+			}
 			inputJson := `{"message": "different message"}`
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tweetPath, recordId)
 			req, _ := http.NewRequest(http.MethodPut, path, bytes.NewBufferString(inputJson))
 			rr := httptest.NewRecorder()
-			r.PUT("/tweets/:id", UpdateTweet)
+			r.PUT("/tweets/:id", middleware, UpdateTweet)
 			r.ServeHTTP(rr, req)
 
 			msgErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -350,18 +404,24 @@ func TestTweets(t *testing.T) {
 	})
 
 	t.Run("DeleteTweet", func(t *testing.T) {
+		middleware := AuthenticateMiddleware("tweet:delete")
+
 		t.Run("Success", func(t *testing.T) {
 			services.TweetService = &tweetServiceMock{}
+			services.AuthService = &authServiceMock{}
 
 			deleteTweetService = func(id int64) error_utils.MessageErr {
 				return nil
+			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
 			}
 
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tweetPath, recordId)
 			req, _ := http.NewRequest(http.MethodDelete, path, nil)
 			rr := httptest.NewRecorder()
-			r.DELETE("/tweets/:id", DeleteTweet)
+			r.DELETE("/tweets/:id", middleware, DeleteTweet)
 			r.ServeHTTP(rr, req)
 
 			var result map[string]string
@@ -374,12 +434,13 @@ func TestTweets(t *testing.T) {
 
 		t.Run("Unable to parse ID", func(t *testing.T) {
 			services.TweetService = &tweetServiceMock{}
+			services.AuthService = &authServiceMock{}
 
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tweetPath, "red")
 			req, _ := http.NewRequest(http.MethodDelete, path, nil)
 			rr := httptest.NewRecorder()
-			r.DELETE("/tweets/:id", DeleteTweet)
+			r.DELETE("/tweets/:id", middleware, DeleteTweet)
 			r.ServeHTTP(rr, req)
 
 			apiErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -393,16 +454,20 @@ func TestTweets(t *testing.T) {
 
 		t.Run("Error", func(t *testing.T) {
 			services.TweetService = &tweetServiceMock{}
+			services.AuthService = &authServiceMock{}
 
 			deleteTweetService = func(id int64) error_utils.MessageErr {
 				return error_utils.InternalServerError("Unable to delete entry")
+			}
+			validateTokenService = func(token *domain.Token, requiredScope string) bool {
+				return true
 			}
 
 			r := gin.Default()
 			path := fmt.Sprintf("%s/%v", tweetPath, recordId)
 			req, _ := http.NewRequest(http.MethodDelete, path, nil)
 			rr := httptest.NewRecorder()
-			r.DELETE("/tweets/:id", DeleteTweet)
+			r.DELETE("/tweets/:id", middleware, DeleteTweet)
 			r.ServeHTTP(rr, req)
 
 			apiErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -427,9 +492,11 @@ func TestWebHook(t *testing.T) {
 
 	const recordId = 1
 	postTime, _ := time.Parse(layout, "2021-07-12 10:55:50 +0000")
+	middleware := AuthenticateMiddleware("tweet:create")
 
 	t.Run("Success", func(t *testing.T) {
 		services.TweetService = &tweetServiceMock{}
+		services.AuthService = &authServiceMock{}
 
 		const msg = "the message"
 
@@ -440,13 +507,15 @@ func TestWebHook(t *testing.T) {
 				PostTime: postTime,
 			}, nil
 		}
-
 		createTweetService = func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
 			return &domain.Tweet{
 				Id:       recordId,
 				Message:  msg,
 				PostTime: postTime,
 			}, nil
+		}
+		validateTokenService = func(token *domain.Token, requiredScope string) bool {
+			return true
 		}
 
 		jsonBody := `{"message": "the message"}`
@@ -456,7 +525,7 @@ func TestWebHook(t *testing.T) {
 			t.Errorf("this is the error: %v\n", err)
 		}
 		rr := httptest.NewRecorder()
-		r.POST(tweetPath, WebHook)
+		r.POST(tweetPath, middleware, WebHook)
 		r.ServeHTTP(rr, req)
 
 		var tweet domain.Tweet
@@ -470,6 +539,11 @@ func TestWebHook(t *testing.T) {
 	})
 
 	t.Run("Invalid JSON", func(t *testing.T) {
+		services.AuthService = &authServiceMock{}
+
+		validateTokenService = func(token *domain.Token, requiredScope string) bool {
+			return true
+		}
 		inputJson := ""
 		r := gin.Default()
 		req, err := http.NewRequest(http.MethodPost, tweetPath, bytes.NewBufferString(inputJson))
@@ -477,7 +551,7 @@ func TestWebHook(t *testing.T) {
 			t.Errorf("this is the error: %v\n", err)
 		}
 		rr := httptest.NewRecorder()
-		r.POST("/tweets", WebHook)
+		r.POST("/tweets", middleware, WebHook)
 		r.ServeHTTP(rr, req)
 
 		apiErr, _ := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -490,9 +564,13 @@ func TestWebHook(t *testing.T) {
 
 	t.Run("GetLast Error", func(t *testing.T) {
 		services.TweetService = &tweetServiceMock{}
+		services.AuthService = &authServiceMock{}
 
 		getLastTweet = func() (*domain.Tweet, error_utils.MessageErr) {
 			return nil, error_utils.UnprocessableEntityError("No tweets found")
+		}
+		validateTokenService = func(token *domain.Token, requiredScope string) bool {
+			return true
 		}
 
 		jsonBody := `{}`
@@ -502,7 +580,7 @@ func TestWebHook(t *testing.T) {
 			t.Errorf("this is the error: %v\n", err)
 		}
 		rr := httptest.NewRecorder()
-		r.POST(tweetPath, WebHook)
+		r.POST(tweetPath, middleware, WebHook)
 		r.ServeHTTP(rr, req)
 
 		msgErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -514,6 +592,7 @@ func TestWebHook(t *testing.T) {
 
 	t.Run("Create Error", func(t *testing.T) {
 		services.TweetService = &tweetServiceMock{}
+		services.AuthService = &authServiceMock{}
 
 		const msg = "the message"
 
@@ -524,7 +603,6 @@ func TestWebHook(t *testing.T) {
 				PostTime: postTime,
 			}, nil
 		}
-
 		createTweetService = func(message *domain.Tweet) (*domain.Tweet, error_utils.MessageErr) {
 			return nil, error_utils.UnprocessableEntityError("Body cannot be empty")
 		}
@@ -535,7 +613,7 @@ func TestWebHook(t *testing.T) {
 			t.Errorf("this is the error: %v\n", err)
 		}
 		rr := httptest.NewRecorder()
-		r.POST(tweetPath, CreateTweet)
+		r.POST(tweetPath, middleware, CreateTweet)
 		r.ServeHTTP(rr, req)
 
 		msgErr, err := error_utils.ApiErrFromBytes(rr.Body.Bytes())
@@ -563,6 +641,7 @@ func TestAuthControllers(t *testing.T) {
 		CreatedAt: mockDate,
 		Modified:  mockDate,
 	}
+
 	t.Run("CreateToken", func(t *testing.T) {
 		_ = os.Setenv("ENABLE_CREATE", "OPEN")
 		middleware := TokenCreateMiddleWare("token:create")
