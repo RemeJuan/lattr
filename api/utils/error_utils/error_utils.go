@@ -37,10 +37,10 @@ func NotFoundError(message string) MessageErr {
 	}
 }
 
-func BadRequestError(message string) MessageErr {
+func ForbiddenError(message string) MessageErr {
 	return &messageErr{
 		ErrMessage: message,
-		ErrStatus:  http.StatusBadRequest,
+		ErrStatus:  http.StatusForbidden,
 		ErrError:   "bad_request",
 	}
 }
@@ -64,6 +64,14 @@ func InternalServerError(message string) MessageErr {
 	return &messageErr{
 		ErrMessage: message,
 		ErrStatus:  http.StatusInternalServerError,
+		ErrError:   "server_error",
+	}
+}
+
+func NotImplementedError(message string) MessageErr {
+	return &messageErr{
+		ErrMessage: message,
+		ErrStatus:  http.StatusNotImplemented,
 		ErrError:   "server_error",
 	}
 }

@@ -13,6 +13,7 @@ func main() {
 	log.Println("server started")
 
 	domain.TweetRepo.Initialize()
+	domain.TokenRepo.Initialize()
 
 	if os.Getenv("GIN_MODE") == "release" {
 		scheduler.Scheduler()

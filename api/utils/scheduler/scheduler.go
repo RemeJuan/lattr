@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/RemeJuan/lattr/domain"
+	"github.com/RemeJuan/lattr/services"
 	"github.com/RemeJuan/lattr/utils/twitter"
 	"github.com/RemeJuan/lattr/utils/webhook"
 	"github.com/go-co-op/gocron"
@@ -25,6 +26,7 @@ func Scheduler() {
 
 	_, err := s.Cron(schedule).Do(getTweets)
 	_, _ = s.Every(1).Day().Do(webhook.GetSchedules)
+	_, _ = s.Every(1).Day().Do(services.AuthService.List)
 
 	if err != nil {
 		fmt.Println("Cron err", err)
@@ -35,17 +37,17 @@ func Scheduler() {
 }
 
 func getTweets() {
-	tweets, err := domain.TweetRepo.GetPending()
+	twts, err := domain.TweetRepo.GetPending()
 
 	if err != nil {
 		fmt.Println("Scheduler:", err)
 		return
 	}
 
-	if ShouldPost(tweets[0]) {
+	if ShouldPost(twts[0]) {
 		var isDuplicate bool
 
-		tw := tweets[0]
+		tw := twts[0]
 		fmt.Println("Posting tweet:", tw.Message)
 		postErr := twitter.CreateTweet(tw.Message)
 

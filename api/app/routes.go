@@ -9,15 +9,24 @@ import (
 
 func Router() {
 	r := gin.Default()
-	g := r.Group("/tweets")
+	tw := r.Group("/tweets")
 	{
-		g.POST("/create", controllers.CreateTweet)
-		g.GET("/:id", controllers.GetTweet)
-		g.GET("/all/:userId", controllers.GetTweets)
-		g.PUT("/:id", controllers.UpdateTweet)
-		g.DELETE("/:id", controllers.DeleteTweet)
+		tw.POST("/create", controllers.AuthenticateMiddleware("tweet:create"), controllers.CreateTweet)
+		tw.GET("/:id", controllers.AuthenticateMiddleware("tweet:read"), controllers.GetTweet)
+		tw.GET("/all/:userId", controllers.AuthenticateMiddleware("tweet:read"), controllers.GetTweets)
+		tw.PUT("/:id", controllers.AuthenticateMiddleware("tweet:update"), controllers.UpdateTweet)
+		tw.DELETE("/:id", controllers.AuthenticateMiddleware("tweet:delete"), controllers.DeleteTweet)
+	}
+	r.POST("/webhook", controllers.AuthenticateMiddleware("tweet:create"), controllers.WebHook)
+
+	tk := r.Group("/token")
+	{
+		tk.POST("/create", controllers.TokenCreateMiddleWare("token:create"), controllers.CreateToken)
+		tk.GET("/:id", controllers.AuthenticateMiddleware("token:read"), controllers.GetToken)
+		tk.GET("/list", controllers.AuthenticateMiddleware("token:read"), controllers.GetTokens)
+		tk.PUT("/:id", controllers.AuthenticateMiddleware("token:update"), controllers.ResetToken)
+		tk.DELETE("/:id", controllers.AuthenticateMiddleware("token:delete"), controllers.DeleteToken)
 	}
 
-	r.POST("/webhook", controllers.WebHook)
 	log.Fatalln(r.Run())
 }

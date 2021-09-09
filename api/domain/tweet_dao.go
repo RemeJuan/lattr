@@ -211,9 +211,3 @@ func (tr *tweetRepo) GetLast() (*Tweet, error_utils.MessageErr) {
 
 	return &tweet, nil
 }
-
-func checkError(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
