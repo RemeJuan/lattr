@@ -33,9 +33,9 @@ database.
 
 In either scenario you would need the following environment variables configured as well as Twitter API credentials.
 
-[Environments and Variables](/RemeJuan/lattr/wiki/Environment-Variables)
+[Environments and Variables](https://github.com/RemeJuan/lattr/wiki/Environment-Variables)
 
-[Tokens and Scopes](/RemeJuan/lattr/wiki/Tokens-and-Scopes)
+[Tokens and Scopes](https://github.com/RemeJuan/lattr/wiki/Tokens-and-Scopes)
 
 In `api/tables` you will find the SQL scripts needed to be run to setup the database
 
@@ -59,4 +59,4 @@ GitHUb account for automated deployment.
 
 [How do I set the timezone on my dyno?](https://help.heroku.com/JZKJJ4NC/how-do-i-set-the-timezone-on-my-dyno)
 
-See the [WiKi](wiki) for more information and documnetation
+See the [WiKi](https://github.com/RemeJuan/lattr/wiki) for more information and documnetation
