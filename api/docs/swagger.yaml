@@ -1,3 +1,4 @@
+basePath: /
 definitions:
   domain.Token:
     properties:
@@ -47,8 +48,18 @@ definitions:
         example: 400
         type: integer
     type: object
+host: https://api.lattr.app
 info:
-  contact: {}
+  contact:
+    email: dev@lattr.app
+    name: Reme
+    url: https://github.com/RemeJuan/lattr
+  description: API driven Tweet scheduler written in Go
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: lattr API
+  version: "1.0"
 paths:
   /token:
     post:
@@ -534,4 +545,9 @@ paths:
       summary: Create a new Tweet via webhook
       tags:
       - Tweets
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

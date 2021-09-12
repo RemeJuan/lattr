@@ -1,8 +1,21 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "API driven Tweet scheduler written in Go",
+        "title": "lattr API",
+        "contact": {
+            "name": "Reme",
+            "url": "https://github.com/RemeJuan/lattr",
+            "email": "dev@lattr.app"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
     },
+    "host": "https://api.lattr.app",
+    "basePath": "/",
     "paths": {
         "/token": {
             "post": {
@@ -846,6 +859,13 @@
                     "example": 400
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }
