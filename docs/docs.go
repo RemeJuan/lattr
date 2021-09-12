@@ -912,7 +912,7 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
-	Host:        "https://api.lattr.app",
+	Host:        "api.lattr.app",
 	BasePath:    "/",
 	Schemes:     []string{},
 	Title:       "lattr API",

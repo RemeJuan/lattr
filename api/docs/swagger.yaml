@@ -63,7 +63,7 @@ definitions:
         example: 400
         type: integer
     type: object
-host: https://api.lattr.app
+host: api.lattr.app
 info:
   contact:
     email: dev@lattr.app

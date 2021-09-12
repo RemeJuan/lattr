@@ -14,7 +14,7 @@
         },
         "version": "1.0"
     },
-    "host": "https://api.lattr.app",
+    "host": "api.lattr.app",
     "basePath": "/",
     "paths": {
         "/token": {
