@@ -1,0 +1,537 @@
+definitions:
+  domain.Token:
+    properties:
+      createdAt:
+        type: string
+      expiry:
+        type: string
+      id:
+        type: integer
+      modified:
+        type: string
+      name:
+        type: string
+      scopes:
+        items:
+          type: string
+        type: array
+      token:
+        type: string
+    type: object
+  domain.Tweet:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: integer
+      message:
+        type: string
+      modified:
+        type: string
+      postTime:
+        type: string
+      status:
+        type: string
+      userId:
+        type: string
+    type: object
+  error_utils.MessageErrStruct:
+    properties:
+      error:
+        example: bad_request
+        type: string
+      message:
+        example: Invalid body
+        type: string
+      status:
+        example: 400
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /token:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Token
+        in: body
+        name: token
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Token'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Token'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+      security:
+      - ApiKeyAuth: []
+      - OAuth2Application:
+        - token:create
+      summary: Create a new token
+      tags:
+      - Tokens
+  /token/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Token ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{message: "success"}'
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+      security:
+      - ApiKeyAuth: []
+      - OAuth2Application:
+        - token:read
+      summary: Deletes the specified token
+      tags:
+      - Tokens
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Token ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Token'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+      security:
+      - ApiKeyAuth: []
+      - OAuth2Application:
+        - token:read
+      summary: Fetches an existing token by ID
+      tags:
+      - Tokens
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Using the given ID, a new token is generated with either the default timing
+        Or the timing specified in the request payload
+      parameters:
+      - description: Token ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Token'
+            type: array
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+      security:
+      - ApiKeyAuth: []
+      - OAuth2Application:
+        - token:read
+      summary: Resets the token specified by the provided ID
+      tags:
+      - Tokens
+  /token/list:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Token'
+            type: array
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+      security:
+      - ApiKeyAuth: []
+      - OAuth2Application:
+        - token:read
+      summary: Fetches a list of all available tokens
+      tags:
+      - Tokens
+  /tweets/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{message: "success"}'
+          schema:
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+      security:
+      - ApiKeyAuth: []
+      summary: Deletes a single tweet
+      tags:
+      - Tweets
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Tweet'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+      security:
+      - ApiKeyAuth: []
+      summary: Fetch Tweet by ID
+      tags:
+      - Tweets
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tweet ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update tweet
+        in: body
+        name: tweet
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Tweet'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Tweet'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+      security:
+      - ApiKeyAuth: []
+      summary: Updated a single tweet
+      tags:
+      - Tweets
+  /tweets/all/{userId}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Tweet'
+            type: array
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+      security:
+      - ApiKeyAuth: []
+      summary: List all Tweets by UserId
+      tags:
+      - Tweets
+  /tweets/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create tweet
+        in: body
+        name: tweet
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Tweet'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Tweet'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+      security:
+      - ApiKeyAuth: []
+      - OAuth2Application:
+        - tweet:create
+      summary: Create a new tweet
+      tags:
+      - Tweets
+  /webhook:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create Tweet
+        in: body
+        name: tweet
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Tweet'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Tweet'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/error_utils.MessageErrStruct'
+      security:
+      - ApiKeyAuth: []
+      - OAuth2Application:
+        - token:create
+      summary: Create a new Tweet via webhook
+      tags:
+      - Tweets
+swagger: "2.0"
