@@ -33,60 +33,9 @@ database.
 
 In either scenario you would need the following environment variables configured as well as Twitter API credentials.
 
-```env
-PORT=
-GIN_MODE=
+[Environments and Variables](/RemeJuan/lattr/wiki/Environment-Variables)
 
-# Twitter
-CONSUMER_KEY=
-CONSUMER_SECRET=
-ACCESS_TOKEN=
-ACCESS_TOKEN_SECRET= 
-
-#Sentry
-SENTRY_DNS=
-
-# Postgress
-DATABASE_URL=
-
-# Scheduler
-SCHEDULE_TYPE=
-SCHEDULES=
-INTERVALS=
-CRON_SCHEDULE=
-
-# Token
-TOKEN_VALIDITY_HOURS=
-ENABLE_CREATE=
-```
-
-* PORT - exposed web port
-* GIN_MODE - release for release or debug for local dev
-* Twitter Credentials - available from [Twitter](http://developer.twitter.com)
-* SENTRY_DNS - optional, for debug logging.
-* DATABASE_URL - PG database url, eg (postgres://un:pass@domain:port/database)
-* SCHEDULE_TYPE - Either INTERVAL, FIXED or RANDOM_MINUTE
-* SCHEDULES - Depends on schedule type
-    * FIXED - A coma seperated list of time slots, eg "01:53,03:17,05:21,06:09,08:11", 24hr time
-    * RANDOM_MINUTE - A coma seperated list of "hours", eg "1,3,5,6,8"
-* INTERVAL - when type is set as INTERVAL, provide a number to denote hours between posts, eg 3.
-* CRON_SCHEDULE - Cron string to control the schedulers checking of the DB for pending posts, default: "*/5 6-18 * * *"
-* TOKEN_VALIDITY_HOURS - Default number of hours a token is valid for, can be overridden with the create request
-* ENABLE_CREATE - Defines how token create endpoint works.
-    * OPEN: should only be used during initial setup, anyone will be able to create token in this state
-    * SCOPED: should be used once a token with the scope of "token:create" exists for creating additional tokens
-    * DISABLED: to completely disable the creating of tokens
-
-The following scopes are available for the various endpoints:
-
-* token:create
-* token:update
-* token:read
-* token:delete
-* tweet:create
-* tweet:update
-* tweet:read
-* tweet:delete
+[Tokens and Scopes](/RemeJuan/lattr/wiki/Tokens-and-Scopes)
 
 In `api/tables` you will find the SQL scripts needed to be run to setup the database
 
@@ -109,3 +58,5 @@ You can then either add heroku as a remote to your project and push the code up,
 GitHUb account for automated deployment.
 
 [How do I set the timezone on my dyno?](https://help.heroku.com/JZKJJ4NC/how-do-i-set-the-timezone-on-my-dyno)
+
+See the [WiKi](/RemeJuan/lattr/wiki) for more information and documnetation
