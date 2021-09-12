@@ -59,4 +59,4 @@ GitHUb account for automated deployment.
 
 [How do I set the timezone on my dyno?](https://help.heroku.com/JZKJJ4NC/how-do-i-set-the-timezone-on-my-dyno)
 
-See the [WiKi](/RemeJuan/lattr/wiki) for more information and documnetation
+See the [WiKi](/wiki) for more information and documnetation
