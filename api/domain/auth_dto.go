@@ -10,13 +10,13 @@ import (
 var scopes = []string{"token:create", "token:update", "token:read", "token:delete", "tweet:create", "tweet:update", "tweet:read", "tweet:delete"}
 
 type Token struct {
-	Id        int64     `json:"id"`
-	Name      string    `json:"name"`
-	Token     string    `json:"token"`
-	Scopes    []string  `json:"scopes"`
-	ExpiresAt time.Time `json:"expiry"`
-	CreatedAt time.Time `json:"createdAt"`
-	Modified  time.Time `json:"modified"`
+	Id        int64     `json:"id" example:"1"`
+	Name      string    `json:"name" example:"IFTTT"`
+	Token     string    `json:"token" example:"1d6dcc23-51c4-4540-b659-b2834efad5bc"`
+	Scopes    []string  `json:"scopes" example:"[token:create]"`
+	ExpiresAt time.Time `json:"expiry" example:"2022-09-09T10:29:07.559636Z"`
+	CreatedAt time.Time `json:"createdAt" example:"2022-09-09T10:29:07.559636Z"`
+	Modified  time.Time `json:"modified" example:"2022-09-09T10:29:07.559636Z"`
 	Validity  int       `json:"-"`
 }
 

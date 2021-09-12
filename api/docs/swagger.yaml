@@ -3,37 +3,52 @@ definitions:
   domain.Token:
     properties:
       createdAt:
+        example: "2022-09-09T10:29:07.559636Z"
         type: string
       expiry:
+        example: "2022-09-09T10:29:07.559636Z"
         type: string
       id:
+        example: 1
         type: integer
       modified:
+        example: "2022-09-09T10:29:07.559636Z"
         type: string
       name:
+        example: IFTTT
         type: string
       scopes:
+        example:
+        - '[token:create]'
         items:
           type: string
         type: array
       token:
+        example: 1d6dcc23-51c4-4540-b659-b2834efad5bc
         type: string
     type: object
   domain.Tweet:
     properties:
       createdAt:
+        example: "2022-09-09T10:29:07.559636Z"
         type: string
       id:
+        example: 1
         type: integer
       message:
+        example: 'TIL: Life is awesome'
         type: string
       modified:
+        example: "2022-09-09T10:29:07.559636Z"
         type: string
       postTime:
+        example: "2022-09-09T10:29:07.559636Z"
         type: string
       status:
+        example: Pending
         type: string
       userId:
+        example: IFTTT
         type: string
     type: object
   error_utils.MessageErrStruct:

@@ -806,28 +806,37 @@ var doc = `{
             "type": "object",
             "properties": {
                 "createdAt": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2022-09-09T10:29:07.559636Z"
                 },
                 "expiry": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2022-09-09T10:29:07.559636Z"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "modified": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2022-09-09T10:29:07.559636Z"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "IFTTT"
                 },
                 "scopes": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "example": [
+                        "[token:create]"
+                    ]
                 },
                 "token": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1d6dcc23-51c4-4540-b659-b2834efad5bc"
                 }
             }
         },
@@ -835,25 +844,32 @@ var doc = `{
             "type": "object",
             "properties": {
                 "createdAt": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2022-09-09T10:29:07.559636Z"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "message": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "TIL: Life is awesome"
                 },
                 "modified": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2022-09-09T10:29:07.559636Z"
                 },
                 "postTime": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2022-09-09T10:29:07.559636Z"
                 },
                 "status": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Pending"
                 },
                 "userId": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "IFTTT"
                 }
             }
         },
