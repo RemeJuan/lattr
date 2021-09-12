@@ -11,6 +11,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// WebHook godoc
+// @Summary Create a new Tweet via webhook
+// @Tags Tweets
+// @Accept  json
+// @Produce  json
+// @Param tweet body domain.Tweet true "Create Tweet"
+// @Success 200 {object} domain.Tweet
+// @Failure 403 {object} error_utils.MessageErrStruct
+// @Failure 404 {object} error_utils.MessageErrStruct
+// @Failure 422 {object} error_utils.MessageErrStruct
+// @Failure 500 {object} error_utils.MessageErrStruct
+// @Failure 501 {object} error_utils.MessageErrStruct
+// @Security ApiKeyAuth
+// @Security OAuth2Application[token:create]
+// @Router /webhook [post]
 func WebHook(c *gin.Context) {
 	var tweet domain.Tweet
 	var tweetTime time.Time

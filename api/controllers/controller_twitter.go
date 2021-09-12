@@ -8,8 +8,25 @@ import (
 	"github.com/RemeJuan/lattr/services"
 	"github.com/RemeJuan/lattr/utils/error_utils"
 	"github.com/gin-gonic/gin"
+	_ "github.com/swaggo/swag/example/celler/httputil"
+	_ "github.com/swaggo/swag/example/celler/model"
 )
 
+// CreateTweet godoc
+// @Summary Create a new tweet
+// @Tags Tweets
+// @Accept  json
+// @Produce  json
+// @Param tweet body domain.Tweet true "Create tweet"
+// @Success 200 {object} domain.Tweet
+// @Failure 403 {object} error_utils.MessageErrStruct
+// @Failure 404 {object} error_utils.MessageErrStruct
+// @Failure 422 {object} error_utils.MessageErrStruct
+// @Failure 500 {object} error_utils.MessageErrStruct
+// @Failure 501 {object} error_utils.MessageErrStruct
+// @Security ApiKeyAuth
+// @Security OAuth2Application[tweet:create]
+// @Router /tweets/create [post]
 func CreateTweet(c *gin.Context) {
 	var tweet domain.Tweet
 
@@ -27,6 +44,20 @@ func CreateTweet(c *gin.Context) {
 	c.JSON(http.StatusCreated, msg)
 }
 
+// GetTweet godoc
+// @Summary Fetch Tweet by ID
+// @Tags Tweets
+// @Accept  json
+// @Produce  json
+// @Param id path int true "Tweet ID"
+// @Success 200 {object} domain.Tweet
+// @Failure 403 {object} error_utils.MessageErrStruct
+// @Failure 404 {object} error_utils.MessageErrStruct
+// @Failure 422 {object} error_utils.MessageErrStruct
+// @Failure 500 {object} error_utils.MessageErrStruct
+// @Failure 501 {object} error_utils.MessageErrStruct
+// @Security ApiKeyAuth
+// @Router /tweets/{id} [get]
 func GetTweet(c *gin.Context) {
 	paramId := GetParam(c, "id")
 	twId, parseErr := strconv.ParseInt(paramId, 10, 64)
@@ -45,6 +76,20 @@ func GetTweet(c *gin.Context) {
 	c.JSON(http.StatusOK, message)
 }
 
+// GetTweets godoc
+// @Summary List all Tweets by UserId
+// @Tags Tweets
+// @Accept  json
+// @Produce  json
+// @Param userId path int true "User ID"
+// @Success 200 {array} domain.Tweet
+// @Failure 403 {object} error_utils.MessageErrStruct
+// @Failure 404 {object} error_utils.MessageErrStruct
+// @Failure 422 {object} error_utils.MessageErrStruct
+// @Failure 500 {object} error_utils.MessageErrStruct
+// @Failure 501 {object} error_utils.MessageErrStruct
+// @Security ApiKeyAuth
+// @Router /tweets/all/{userId} [get]
 func GetTweets(c *gin.Context) {
 	userId := GetParam(c, "userId")
 
@@ -56,6 +101,21 @@ func GetTweets(c *gin.Context) {
 	c.JSON(http.StatusOK, tweets)
 }
 
+// UpdateTweet godoc
+// @Summary Updated a single tweet
+// @Tags Tweets
+// @Accept  json
+// @Produce  json
+// @Param id path int true "Tweet ID"
+// @Param tweet body domain.Tweet true "Update tweet"
+// @Success 200 {object} domain.Tweet
+// @Failure 403 {object} error_utils.MessageErrStruct
+// @Failure 404 {object} error_utils.MessageErrStruct
+// @Failure 422 {object} error_utils.MessageErrStruct
+// @Failure 500 {object} error_utils.MessageErrStruct
+// @Failure 501 {object} error_utils.MessageErrStruct
+// @Security ApiKeyAuth
+// @Router /tweets/{id} [put]
 func UpdateTweet(c *gin.Context) {
 	paramId := GetParam(c, "id")
 	twId, parseErr := strconv.ParseInt(paramId, 10, 64)
@@ -83,6 +143,20 @@ func UpdateTweet(c *gin.Context) {
 	c.JSON(http.StatusOK, msg)
 }
 
+// DeleteTweet godoc
+// @Summary Deletes a single tweet
+// @Tags Tweets
+// @Accept  json
+// @Produce  json
+// @Param id path int true "Tweet ID"
+// @Success 200 {object} object "{message: "success"}"
+// @Failure 403 {object} error_utils.MessageErrStruct
+// @Failure 404 {object} error_utils.MessageErrStruct
+// @Failure 422 {object} error_utils.MessageErrStruct
+// @Failure 500 {object} error_utils.MessageErrStruct
+// @Failure 501 {object} error_utils.MessageErrStruct
+// @Security ApiKeyAuth
+// @Router /tweets/{id} [delete]
 func DeleteTweet(c *gin.Context) {
 	paramId := GetParam(c, "id")
 	twId, parseErr := strconv.ParseInt(paramId, 10, 64)
