@@ -1,7 +1,7 @@
 ![Lattr](readme/lattr_logo.png)
 
 [![codecov](https://codecov.io/gh/RemeJuan/lattr/branch/main/graph/badge.svg?*token=XeKra2LhuM)](https://codecov.io/gh/RemeJuan/lattr)
-[![swagger](https://img.shields.io/badge/-swagger-brightgreen))(http://swagger.lattr.app)
+[![swagger](https://img.shields.io/badge/-swagger-brightgreen)](http://swagger.lattr.app)
 
 # Lattr
 
