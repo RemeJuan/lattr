@@ -12,3 +12,5 @@ coverage:
 	$(GOCOVER) -func=coverage.out
 	$(GOCOVER) -html=coverage.out
 
+swag:
+	swag init & swag init -o ../docs
