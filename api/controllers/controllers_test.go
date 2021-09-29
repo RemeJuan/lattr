@@ -487,6 +487,7 @@ func TestWebHook(t *testing.T) {
 	schedules := []string{"14:30", "15:31"}
 	_ = os.Setenv("SCHEDULE_TYPE", "FIXED")
 	_ = os.Setenv("SCHEDULES", strings.Join(schedules, ","))
+	_ = os.Setenv("SCHEDULE_DAYS", "Monday,Tuesday,Wednesday,Thursday,Friday")
 
 	webhook.GetSchedules()
 
