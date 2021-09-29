@@ -29,6 +29,7 @@ func TestFixedScheduler(t *testing.T) {
 	schedules := []string{"14:30", "15:31"}
 	_ = os.Setenv("SCHEDULE_TYPE", "FIXED")
 	_ = os.Setenv("SCHEDULES", strings.Join(schedules, ","))
+	_ = os.Setenv("SCHEDULE_DAYS", "Monday,Tuesday,Wednesday,Thursday,Friday")
 
 	GetSchedules()
 
@@ -46,7 +47,7 @@ func TestFixedScheduler(t *testing.T) {
 			PostTime: time.Date(2021, 8, 20, 15, 31, 0, 0, time.Local),
 		}
 
-		expected := time.Date(2021, 8, 21, 14, 30, 0, 0, time.Local)
+		expected := time.Date(2021, 8, 23, 14, 30, 0, 0, time.Local)
 
 		result := DetermineScheduleType(tweet.PostTime)
 
@@ -72,6 +73,7 @@ func TestRandomMinuteScheduler(t *testing.T) {
 	schedules := []string{"14", "15"}
 	_ = os.Setenv("SCHEDULE_TYPE", "RANDOM_MINUTE")
 	_ = os.Setenv("SCHEDULES", strings.Join(schedules, ","))
+	_ = os.Setenv("SCHEDULE_DAYS", "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday")
 
 	GetSchedules()
 

@@ -66,13 +66,17 @@ func GetSchedules() {
 	schedules := os.Getenv("SCHEDULES")
 	slots := strings.Split(schedules, ",")
 	result := make([]time.Time, 0)
+	enabledDays := getScheduleDays()
 
 	for _, val := range slots {
 		hour, min := splitTimeString(val)
 
 		for i := 0; i < slotsLength; i++ {
 			t := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day()+i, hour, min, 0, 0, time.Local)
-			result = append(result, t)
+
+			if containsDay(enabledDays, t.Weekday()) {
+				result = append(result, t)
+			}
 		}
 	}
 
@@ -133,4 +137,40 @@ func removeUsedSlot(i int) {
 	}
 
 	timeSlots = s[:len(s)-1]
+}
+
+func getScheduleDays() []time.Weekday {
+	slots := make([]time.Weekday, 0)
+	envDays := os.Getenv("SCHEDULE_DAYS")
+	days := strings.Split(envDays, ",")
+
+	for _, val := range days {
+		switch strings.ToLower(val) {
+		case "monday":
+			slots = append(slots, time.Monday)
+		case "tuesday":
+			slots = append(slots, time.Tuesday)
+		case "wednesday":
+			slots = append(slots, time.Wednesday)
+		case "thursday":
+			slots = append(slots, time.Thursday)
+		case "friday":
+			slots = append(slots, time.Friday)
+		case "saturday":
+			slots = append(slots, time.Saturday)
+		case "sunday":
+			slots = append(slots, time.Sunday)
+		}
+	}
+
+	return slots
+}
+
+func containsDay(arr []time.Weekday, str time.Weekday) bool {
+	for _, a := range arr {
+		if a == str {
+			return true
+		}
+	}
+	return false
 }
